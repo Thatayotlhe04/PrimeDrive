@@ -287,11 +287,11 @@ async def activate_subscription(user_id: str, tier_id: str, duration_days: int =
 # ========================================
 # Auth Endpoints
 # ========================================
+
 @app.post("/auth/signup", response_model=AuthResponse)
 async def signup(user_data: UserSignup):
     """Register a new user"""
     try:
-        # Sign up with Supabase Auth
         auth_response = supabase.auth.sign_up({
             "email": user_data.email,
             "password": user_data.password
@@ -300,20 +300,19 @@ async def signup(user_data: UserSignup):
         if not auth_response.user:
             raise HTTPException(status_code=400, detail="Signup failed")
 
-        # Create user profile in users table
         supabase.from_("users").insert({
             "id": auth_response.user.id,
             "phone": user_data.phone,
             "whatsapp": user_data.whatsapp,
         }).execute()
 
-        # Get full profile
         profile = await get_user_profile(auth_response.user.id)
 
         return AuthResponse(
             access_token=auth_response.session.access_token,
             user=profile
         )
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -321,41 +320,30 @@ async def signup(user_data: UserSignup):
 @app.post("/auth/login", response_model=AuthResponse)
 async def login(credentials: UserLogin):
     """TEMP BYPASS LOGIN (DEV MODE)"""
-    try:
-        # 👇 Hardcode the admin email (must exist in Supabase Auth)
-        admin_email = "admin@admin.com"
 
-        # Sign in using Supabase magic: generate a fake session by using an existing user
-        # We'll just fetch the profile directly
-        user_profile = supabase.from_("users").select("*").limit(1).execute()
+    user_profile = supabase.from_("users").select("*").limit(1).execute()
 
-        if not user_profile.data:
-            raise HTTPException(status_code=404, detail="No users found in database")
+    if not user_profile.data:
+        raise HTTPException(status_code=404, detail="No users found in database")
 
-        profile = user_profile.data[0]
+    profile = user_profile.data[0]
 
-        return AuthResponse(
-            access_token="DEV_BYPASS_TOKEN",
-            user=profile
-        )
-
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=str(e))
-
-        profile = await get_user_profile(auth_response.user.id)
-
-        return AuthResponse(
-            access_token=auth_response.session.access_token,
-            user=profile
-        )
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return AuthResponse(
+        access_token="DEV_BYPASS_TOKEN",
+        user=profile
+    )
 
 
 @app.get("/auth/me", response_model=UserProfile)
-async def get_me(user=Depends(get_current_user)):
-    """Get current user profile"""
-    return await get_user_profile(user.id)
+async def get_me():
+    """TEMP BYPASS AUTH (DEV MODE)"""
+
+    user_profile = supabase.from_("users").select("*").limit(1).execute()
+
+    if not user_profile.data:
+        raise HTTPException(status_code=404, detail="No users found")
+
+    return user_profile.data[0]
 
 
 # ========================================
