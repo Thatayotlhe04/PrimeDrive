@@ -320,15 +320,27 @@ async def signup(user_data: UserSignup):
 
 @app.post("/auth/login", response_model=AuthResponse)
 async def login(credentials: UserLogin):
-    """Login user"""
+    """TEMP BYPASS LOGIN (DEV MODE)"""
     try:
-        auth_response = supabase.auth.sign_in_with_password({
-            "email": credentials.email,
-            "password": credentials.password
-        })
+        # 👇 Hardcode the admin email (must exist in Supabase Auth)
+        admin_email = "admin@admin.com"
 
-        if not auth_response.session:
-            raise HTTPException(status_code=401, detail="Invalid credentials")
+        # Sign in using Supabase magic: generate a fake session by using an existing user
+        # We'll just fetch the profile directly
+        user_profile = supabase.from_("users").select("*").limit(1).execute()
+
+        if not user_profile.data:
+            raise HTTPException(status_code=404, detail="No users found in database")
+
+        profile = user_profile.data[0]
+
+        return AuthResponse(
+            access_token="DEV_BYPASS_TOKEN",
+            user=profile
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=401, detail=str(e))
 
         profile = await get_user_profile(auth_response.user.id)
 
