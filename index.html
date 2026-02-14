@@ -15,6 +15,19 @@
     <link rel="canonical" href="https://primedrivebotswana.com">
 
 ```
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3b5bff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PrimeDrive">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="384x384" href="icons/icon-384x384.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="msapplication-TileColor" content="#3b5bff">
+<meta name="msapplication-TileImage" content="icons/icon-144x144.png">
+
 <!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1324,6 +1337,72 @@
     .footer__copy {
         font-size: 0.78rem;
         color: var(--text-tertiary);
+    }
+
+    /* ========================================
+       PWA INSTALL BANNER
+       ======================================== */
+    .pwa-install-banner {
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        z-index: 1001;
+        background: var(--bg-card);
+        border-top: 1px solid var(--border-default);
+        padding: 16px 20px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+        animation: slideUpBanner 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .pwa-install-banner.show { display: flex; }
+    @keyframes slideUpBanner {
+        from { transform: translateY(100%); }
+        to { transform: translateY(0); }
+    }
+    .pwa-install-banner__icon {
+        width: 48px; height: 48px; min-width: 48px;
+        border-radius: var(--radius-md);
+        background: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-family: var(--font-display);
+        font-weight: 800; font-size: 1.25rem;
+    }
+    .pwa-install-banner__text {
+        flex: 1;
+    }
+    .pwa-install-banner__title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 0.92rem;
+        margin-bottom: 2px;
+    }
+    .pwa-install-banner__desc {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+    }
+    .pwa-install-banner__actions {
+        display: flex; gap: 8px; align-items: center;
+    }
+    .pwa-install-banner__close {
+        width: 32px; height: 32px;
+        border-radius: var(--radius-sm);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; color: var(--text-tertiary);
+        cursor: pointer; transition: all var(--transition-fast);
+    }
+    .pwa-install-banner__close:hover {
+        background: var(--bg-secondary); color: var(--text-primary);
+    }
+
+    /* Shift WhatsApp float up when install banner is showing */
+    .pwa-install-banner.show ~ .wa-float { bottom: 100px; }
+
+    @media (max-width: 480px) {
+        .pwa-install-banner { flex-wrap: wrap; }
+        .pwa-install-banner__actions { width: 100%; }
+        .pwa-install-banner__actions .btn { flex: 1; }
     }
 
     /* ========================================
@@ -2862,6 +2941,23 @@
 </div>
 
 
+<!-- PWA Install Banner -->
+<div class="pwa-install-banner" id="pwaInstallBanner">
+    <div class="pwa-install-banner__icon">P<span style="display:inline-block;width:5px;height:5px;background:#22c55e;border-radius:50%;margin-left:1px;margin-bottom:6px;"></span></div>
+    <div class="pwa-install-banner__text">
+        <div class="pwa-install-banner__title">Install PrimeDrive</div>
+        <div class="pwa-install-banner__desc">Add to home screen for the best experience</div>
+    </div>
+    <div class="pwa-install-banner__actions">
+        <button class="btn btn--primary btn--sm" id="pwaInstallBtn" onclick="installPWA()">
+            <i class="bi bi-download"></i> Install
+        </button>
+        <div class="pwa-install-banner__close" onclick="dismissInstallBanner()">
+            <i class="bi bi-x-lg"></i>
+        </div>
+    </div>
+</div>
+
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
     <div class="container footer__inner">
@@ -3793,6 +3889,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initRevealObserver();
     restoreSession();
 
+    // Handle deep link from PWA shortcuts
+    handleHashNavigation();
+
     // Close login on overlay click
     document.getElementById('loginOverlay').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) hideLogin();
@@ -3803,6 +3902,124 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') hideLogin();
     });
 });
+/* ===========================================
+   PWA — SERVICE WORKER & INSTALL PROMPT
+   =========================================== */
+let deferredInstallPrompt = null;
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            console.log('[PWA] Service worker registered:', reg.scope);
+
+            // Listen for updates
+            reg.addEventListener('updatefound', () => {
+                const newWorker = reg.installing;
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
+                        // New version available — could show update banner
+                        console.log('[PWA] New version available');
+                    }
+                });
+            });
+        } catch (err) {
+            console.log('[PWA] SW registration failed:', err);
+        }
+    });
+}
+
+// Capture the install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // Don't show if user dismissed recently
+    const dismissed = localStorage.getItem('pd-pwa-dismissed');
+    if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const daysSince = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+        if (daysSince < 3) return; // Wait 3 days before showing again
+    }
+
+    // Show install banner after a short delay
+    setTimeout(() => {
+        document.getElementById('pwaInstallBanner').classList.add('show');
+    }, 2000);
+});
+
+async function installPWA() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const result = await deferredInstallPrompt.userChoice;
+    console.log('[PWA] Install result:', result.outcome);
+
+    if (result.outcome === 'accepted') {
+        document.getElementById('pwaInstallBanner').classList.remove('show');
+    }
+    deferredInstallPrompt = null;
+}
+
+function dismissInstallBanner() {
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    localStorage.setItem('pd-pwa-dismissed', Date.now().toString());
+}
+
+// Detect if already installed
+window.addEventListener('appinstalled', () => {
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    deferredInstallPrompt = null;
+    console.log('[PWA] App installed successfully');
+});
+
+// iOS install hint (iOS doesn't fire beforeinstallprompt)
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+function isInStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+}
+if (isIOS() && !isInStandaloneMode()) {
+    // Show a custom iOS install hint after delay
+    setTimeout(() => {
+        const banner = document.getElementById('pwaInstallBanner');
+        const btn = document.getElementById('pwaInstallBtn');
+        banner.querySelector('.pwa-install-banner__desc').textContent =
+            'Tap the share button, then "Add to Home Screen"';
+        btn.innerHTML = '<i class="bi bi-box-arrow-up"></i> How to Install';
+        btn.onclick = () => {
+            alert('To install PrimeDrive on your iPhone:\n\n1. Tap the Share button (box with arrow) at the bottom of Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"\n\nThat\'s it! PrimeDrive will appear on your home screen like a real app.');
+        };
+
+        const dismissed = localStorage.getItem('pd-pwa-dismissed');
+        if (!dismissed || (Date.now() - parseInt(dismissed)) > 3 * 24 * 60 * 60 * 1000) {
+            banner.classList.add('show');
+        }
+    }, 3000);
+}
+
+
+/* ===========================================
+   NAVIGATION — HASH-BASED DEEP LINKING
+   =========================================== */
+function handleHashNavigation() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById('page-' + hash)) {
+        navigate(hash);
+    }
+}
+window.addEventListener('hashchange', handleHashNavigation);
+
+// Override navigate to also update hash
+const _origNavigate = navigate;
+navigate = function(page) {
+    history.replaceState(null, '', '#' + page);
+    _origNavigate(page);
+};
+
+
 </script>
 ```
 
