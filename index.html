@@ -33,9 +33,7 @@
 
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-    <!-- Supabase (loaded async — won't block page) -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js"></script>
 
     <style>
         /* ========================================
@@ -4332,87 +4330,20 @@
 
     const WHATSAPP = "26777625997";
 
-    // =============================================
-    /* ===========================================
-       SUPABASE CONFIG
-       ===========================================
-       HOW TO GET YOUR KEYS:
-       1. Go to supabase.com → your project
-       2. Click "Project Settings" (gear icon, bottom-left)
-       3. Click "API" in the sidebar
-       4. Copy "Project URL" → paste below as SUPABASE_URL
-       5. Copy "anon public" key (starts with eyJ...) → paste below as SUPABASE_ANON_KEY
-       =========================================== */
-    const SUPABASE_URL = 'https://lbzaenivqbxjalhgrppw.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_L23K_alF_v5syG9saBe0pQ_Lv2HyIJw';
-    // ↑↑↑ Must start with "eyJ" — it's a long JWT token, NOT "sb_publishable_..."
+    // ===========================================
+    // SUPABASE CLIENT (single init, no guards)
+    // ===========================================
+    const supabase = window.supabaseClient || window.supabase.createClient(
+        'https://lbzaenivqbxjalhgrppw.supabase.co',
+        'sb_publishable_L23K_alF_v5syG9saBe0pQ_Lv2HyIJw'  // Click copy icon in Supabase API Keys to verify this is complete
+    );
+    window.supabaseClient = supabase;
 
-    let supabase = null;
-    let supabaseReady = false;
-
-    /* ===========================================
-       SUPABASE INIT (Clean & Stable)
-       =========================================== */
-    document.addEventListener('DOMContentLoaded', () => {
-        // 1. Check library loaded
-        if (!window.supabase || !window.supabase.createClient) {
-            console.error('[PrimeDrive] Supabase JS library failed to load.');
-            showConnectionStatus('cdn-failed');
-            return;
-        }
-
-        // 2. Check config
-        if (SUPABASE_URL.includes('YOUR_PROJECT') || SUPABASE_ANON_KEY.includes('PASTE_YOUR')) {
-            console.warn('[PrimeDrive] Supabase not configured — placeholders still present.');
-            showConnectionStatus('not-configured');
-            return;
-        }
-
-        // 3. Validate key format
-        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
-            console.error('[PrimeDrive] Invalid API key format. Supabase anon keys start with "eyJ..."');
-            showConnectionStatus('bad-key');
-            return;
-        }
-
-        // 4. Create client
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            supabaseReady = true;
-            console.log('[PrimeDrive] Supabase client created.');
-            showConnectionStatus('connected');
-        } catch (err) {
-            console.error('[PrimeDrive] Supabase init error:', err);
-            showConnectionStatus('error', err.message);
-            return;
-        }
-
-        // 5. Verify connection with a test query
-        (async () => {
-            try {
-                const { error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
-                if (error) {
-                    console.warn('[PrimeDrive] Supabase connection test failed:', error.message);
-                    if (error.message.includes('Invalid API key') || error.message.includes('JWSError') || error.message.includes('invalid_jwt')) {
-                        showConnectionStatus('bad-key');
-                        supabaseReady = false;
-                        return;
-                    }
-                }
-                console.log('[PrimeDrive] Supabase connection verified.');
-            } catch (err) {
-                console.warn('[PrimeDrive] Connection test error:', err);
-            }
-        })();
-
-        // 6. Restore session
-        restoreSession();
-
-        // 7. Reload data
-        loadFeaturedListings();
-        loadMarketplaceListings();
-
-        // 8. Listen for auth changes (handles OAuth redirects, token refresh, tab sync)
+    // Boot: restore session + load data + auth listener
+    (async function boot() {
+        try { await restoreSession(); } catch(e) { console.warn('Session restore:', e); }
+        try { loadFeaturedListings(); } catch(e) {}
+        try { loadMarketplaceListings(); } catch(e) {}
         supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'SIGNED_IN' && session && !currentUser) {
                 currentUser = session.user;
@@ -4425,45 +4356,7 @@
                 isAdmin = false;
             }
         });
-    });
-
-    /* ===========================================
-       CONNECTION STATUS & DEBUG TOOL
-       =========================================== */
-    let logoTaps = 0;
-    function showConnectionStatus(status, detail) {
-        const messages = {
-            'not-configured': 'Supabase URL/Key still has placeholder values — edit index.html',
-            'loading': 'Supabase JS library loading...',
-            'connected': 'Connected to Supabase',
-            'error': 'Connection error: ' + (detail || 'unknown'),
-            'cdn-failed': 'Supabase CDN failed to load — check internet connection',
-            'bad-key': 'Invalid API key format. Go to Supabase > Project Settings > API > copy the "anon public" key (starts with eyJ...)'
-        };
-        window._pdStatus = messages[status] || status;
-        console.log('[PrimeDrive Status] ' + window._pdStatus);
-    }
-
-    // Tap PrimeDrive logo 5 times to see debug info
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.nav__logo')) {
-            logoTaps++;
-            if (logoTaps >= 5) {
-                logoTaps = 0;
-                const keyPreview = SUPABASE_ANON_KEY.slice(0, 10) + '...';
-                const keyValid = SUPABASE_ANON_KEY.startsWith('eyJ') ? 'YES (JWT format)' : 'NO — must start with eyJ';
-                alert('[PrimeDrive Debug]\n\n' +
-                    'Status: ' + (window._pdStatus || 'unknown') + '\n' +
-                    'supabaseReady: ' + supabaseReady + '\n' +
-                    'Library loaded: ' + !!(window.supabase && window.supabase.createClient) + '\n' +
-                    'URL: ' + SUPABASE_URL + '\n' +
-                    'Key preview: ' + keyPreview + '\n' +
-                    'Key valid format: ' + keyValid + '\n' +
-                    'User: ' + (currentUser ? currentUser.email : 'not logged in'));
-            }
-            setTimeout(() => { logoTaps = 0; }, 3000);
-        }
-    });
+    })();
 
     // Auth state
     let currentUser = null;   // Supabase auth user
@@ -4553,7 +4446,6 @@
     window.addEventListener('scroll', () => {
         document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 10);
     });
-
 
 
     /* ===========================================
@@ -4846,10 +4738,6 @@
         const title = make + ' ' + model;
 
         try {
-            if (!supabaseReady) {
-                throw new Error('PrimeDrive is not connected to the database yet. Please try again later.');
-            }
-
             // 1. Insert listing record
             const { data: listing, error: listErr } = await supabase
                 .from('listings')
@@ -4929,22 +4817,6 @@
     async function loadMarketplaceListings() {
         const grid = document.getElementById('buyGrid');
         const countEl = document.getElementById('buyCount');
-
-        if (!supabaseReady) {
-            // Offline: show helpful empty state
-            marketplaceListings = [];
-            countEl.textContent = '0 listings';
-            grid.innerHTML = `<div class="no-results">
-                <div class="no-results__icon"><i class="bi bi-cloud-slash"></i></div>
-                <div class="no-results__title">Marketplace Not Connected</div>
-                <p class="body-sm">Listings will appear here once Supabase is configured. Add your Supabase URL and key to index.html to connect the database.</p>
-                <button class="btn btn--primary" onclick="navigate('sell')" style="margin-top:16px;">
-                    <i class="bi bi-plus-circle"></i> Create a Listing
-                </button>
-            </div>`;
-            return;
-        }
-
         countEl.textContent = 'Loading listings...';
         grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary);"><i class="bi bi-arrow-repeat spin" style="font-size:2rem;"></i></div>';
 
@@ -4998,18 +4870,6 @@
     async function loadFeaturedListings() {
         const grid = document.getElementById('featuredGrid');
         if (!grid) return;
-
-        if (!supabaseReady) {
-            grid.innerHTML = `<div class="featured-listings__empty">
-                <i class="bi bi-car-front"></i>
-                <p>Listings will appear here once the marketplace is live.</p>
-                <button class="btn btn--primary btn--sm" onclick="navigate('sell')" style="margin-top:12px;">
-                    <i class="bi bi-plus-circle"></i> Be the First to List
-                </button>
-            </div>`;
-            return;
-        }
-
         // Only show loading spinner on first load
         if (!featuredLoaded) {
             grid.innerHTML = '<div style="text-align:center;padding:48px 0;color:var(--text-tertiary);grid-column:1/-1;"><i class="bi bi-arrow-repeat spin" style="font-size:1.5rem;"></i><p style="margin-top:8px;">Loading listings...</p></div>';
@@ -5073,7 +4933,6 @@
         try {
             let listing, photos;
 
-            if (supabaseReady) {
                 // Fetch listing
                 const { data, error } = await supabase
                     .from('listings')
@@ -5086,12 +4945,6 @@
 
                 // Increment view count
                 supabase.rpc('increment_listing_views', { listing_uuid: id }).catch(() => {});
-            } else {
-                // Offline: try from local cache
-                listing = marketplaceListings.find(l => l.id === id);
-                photos = [];
-                if (!listing) throw new Error('Listing not found');
-            }
 
             currentListingDetail = listing;
 
@@ -5248,7 +5101,6 @@
         const price = Number(listing.price);
 
         // Log lead in Supabase
-        if (supabaseReady) {
             try {
                 await supabase.from('leads').insert({
                     lead_code: leadCode,
@@ -5262,7 +5114,6 @@
                 supabase.rpc('increment_whatsapp_clicks', { listing_uuid: listingId }).catch(() => {});
             } catch (err) {
                 console.warn('Lead creation error:', err.message);
-            }
         }
 
         // Build WhatsApp message
@@ -5276,7 +5127,7 @@
 
         const waNumber = type === 'whatsapp_primedrive' ? WHATSAPP : WHATSAPP; // Will use seller's WhatsApp when profile has it
         // Try to get seller's actual WhatsApp for seller contact
-        if (type === 'whatsapp_seller' && supabaseReady && listing.user_id) {
+        if (type === 'whatsapp_seller' && listing.user_id) {
             try {
                 const { data: sp } = await supabase.from('profiles').select('whatsapp, phone').eq('id', listing.user_id).single();
                 if (sp) {
@@ -5316,7 +5167,6 @@
         if (!confirmed) return;
 
         // Log lead
-        if (supabaseReady) {
             try {
                 await supabase.from('leads').insert({
                     lead_code: leadCode,
@@ -5330,7 +5180,6 @@
                 supabase.rpc('increment_whatsapp_clicks', { listing_uuid: listingId }).catch(() => {});
             } catch (err) {
                 console.warn('Verified deal lead error:', err.message);
-            }
         }
 
         // Open WhatsApp to PrimeDrive
@@ -5355,13 +5204,6 @@
 
         const grid = document.getElementById('myListingsGrid');
         const countEl = document.getElementById('myListingsCount');
-
-        if (!supabaseReady) {
-            countEl.textContent = '0 listings';
-            grid.innerHTML = noResultsHTML();
-            return;
-        }
-
         countEl.textContent = 'Loading...';
         grid.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-tertiary);"><i class="bi bi-arrow-repeat spin" style="font-size:2rem;"></i></div>';
 
@@ -5488,7 +5330,6 @@
         btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Submitting...';
 
         try {
-            if (supabaseReady) {
                 await supabase.from('sourcing_requests').insert({
                     user_id: currentUser?.id || null,
                     brand: d.brand,
@@ -5499,7 +5340,6 @@
                     notes: d.notes || null,
                     status: 'new'
                 });
-            }
 
             e.target.reset();
             btn.innerHTML = '<i class="bi bi-check-circle"></i> Request Submitted!';
@@ -5604,21 +5444,6 @@
         clearLoginError();
     }
 
-    function getAuthError() {
-        if (!window.supabase || !window.supabase.createClient) {
-            return 'Supabase library failed to load. Check your internet connection and refresh.';
-        }
-        if (SUPABASE_ANON_KEY.includes('PASTE_YOUR') || SUPABASE_URL.includes('YOUR_PROJECT')) {
-            return 'Supabase is not configured. The API key needs to be pasted into index.html.';
-        }
-        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
-            return 'Invalid API key format. Your key must start with "eyJ..." — go to Supabase > Project Settings > API > copy the anon public key.';
-        }
-        if (!supabaseReady) {
-            return 'Not connected to the database. Please refresh the page.';
-        }
-        return null;
-    }
 
     async function handleLogin(e) {
         e.preventDefault();
@@ -5631,7 +5456,6 @@
         const password = document.getElementById('loginPassword').value;
 
         try {
-            const authErr = getAuthError(); if (authErr) throw new Error(authErr);
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
             currentUser = data.user;
@@ -5647,7 +5471,6 @@
     }
 
     async function handleGoogleLogin() {
-        const authErr = getAuthError();
         if (authErr) {
             showLoginError(authErr);
             return;
@@ -5685,7 +5508,6 @@
         const whatsapp = document.getElementById('signupWhatsApp').value || null;
 
         try {
-            const authErr = getAuthError(); if (authErr) throw new Error(authErr);
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -5718,12 +5540,6 @@
 
     async function loadProfile() {
         if (!currentUser) return;
-        if (!supabaseReady) {
-            // No fake profiles — can't load without database
-            currentProfile = null;
-            isAdmin = false;
-            return;
-        }
         const { data, error } = await supabase
             .from('profiles')
             .select('*')
@@ -5786,9 +5602,7 @@
     }
 
     async function handleLogout() {
-        if (supabaseReady) {
             try { await supabase.auth.signOut(); } catch(e) {}
-        }
         currentUser = null;
         currentProfile = null;
         isAdmin = false;
@@ -5837,7 +5651,6 @@
     }
 
     async function restoreSession() {
-        if (!supabaseReady) return;
         try {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) return;
@@ -5860,8 +5673,6 @@
     async function startConversation(listingId, sellerId) {
         if (!currentUser) { showLogin(); return; }
         if (currentUser.id === sellerId) { alert('This is your own listing.'); return; }
-        if (!supabaseReady) { alert('Not connected to server.'); return; }
-
         try {
             // Check if conversation already exists
             const { data: existing } = await supabase
@@ -5900,7 +5711,7 @@
     }
 
     async function loadConversations() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
         const listEl = document.getElementById('msgConvList');
         const countEl = document.getElementById('msgCount');
         if (!listEl) return;
@@ -6117,7 +5928,7 @@
     }
 
     async function updateUnreadBadge() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
         try {
             const { data } = await supabase.rpc('get_unread_count', { user_uuid: currentUser.id });
             const badge = document.getElementById('navMsgBadge');
@@ -6140,8 +5951,6 @@
 
     async function initCheckout(listingId) {
         if (!currentUser) { showLogin(); return; }
-        if (!supabaseReady) { alert('Not connected to server.'); return; }
-
         navigate('checkout');
         const content = document.getElementById('checkoutContent');
         content.innerHTML = '<div style="text-align:center;padding:40px;"><i class="bi bi-arrow-repeat spin" style="font-size:1.5rem;"></i></div>';
@@ -6353,7 +6162,6 @@
     }
 
     async function confirmPayment(txnId) {
-        if (!supabaseReady) return;
         try {
             const { error } = await supabase
                 .from('sale_transactions')
@@ -6394,7 +6202,7 @@
        BUYER PURCHASES
        =========================================== */
     async function loadBuyerPurchases() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
         try {
             const { data: purchases, error } = await supabase
                 .from('sale_transactions')
@@ -6450,7 +6258,7 @@
        SELLER EARNINGS
        =========================================== */
     async function loadSellerEarnings() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
 
         try {
             const { data: sales, error } = await supabase
@@ -6569,7 +6377,6 @@
             const ref = 'PD-' + Date.now().toString(36).toUpperCase();
 
             // Create transaction record in Supabase (if configured)
-            if (supabaseReady) {
                 const { data: txn, error } = await supabase
                     .from('transactions')
                     .insert({
@@ -6583,7 +6390,6 @@
                     .select()
                     .single();
                 if (error) throw error;
-            }
 
             // Build WhatsApp payment message
             const payMsg =
@@ -6621,17 +6427,6 @@
        =========================================== */
     async function loadAdminData() {
         if (!currentUser || !isAdmin) return;
-
-        if (!supabaseReady) {
-            renderPendingTable([]);
-            renderRecentTable([]);
-            document.getElementById('statPending').textContent = '0';
-            document.getElementById('statAwaiting').textContent = '0';
-            document.getElementById('statCompleted').textContent = '0';
-            document.getElementById('statRevenue').textContent = 'P0';
-            return;
-        }
-
         try {
             // Load ALL transactions (admin RLS policy allows this)
             const { data: allTxns, error: txnErr } = await supabase
@@ -6723,7 +6518,6 @@
 
     async function adminApprove(txnId, userId, tierName) {
         if (!confirm('Approve this payment and activate the subscription?')) return;
-        if (!supabaseReady) { alert('Supabase not configured — cannot approve in offline mode.'); return; }
         try {
             // Update transaction status
             const { error: txnErr } = await supabase
@@ -6761,7 +6555,6 @@
     async function adminReject(txnId) {
         const reason = prompt('Rejection reason (optional):');
         if (reason === null) return;
-        if (!supabaseReady) { alert('Supabase not configured — cannot reject in offline mode.'); return; }
         try {
             const { error } = await supabase
                 .from('transactions')
@@ -6783,7 +6576,7 @@
        ADMIN — SALE TRANSACTIONS
        =========================================== */
     async function loadAdminSaleTransactions() {
-        if (!isAdmin || !supabaseReady) return;
+        if (!isAdmin) return;
 
         try {
             const { data: sales, error } = await supabase
@@ -6909,7 +6702,7 @@
        ADMIN — SOURCING REQUESTS
        =========================================== */
     async function loadAdminSourcingRequests() {
-        if (!isAdmin || !supabaseReady) return;
+        if (!isAdmin) return;
         try {
             const { data: reqs, error } = await supabase
                 .from('sourcing_requests')
@@ -7005,7 +6798,6 @@
        IN-APP NOTIFICATIONS TABLE + BELL
        =========================================== */
     async function createNotification(userId, type, title, body, relatedId) {
-        if (!supabaseReady) return;
         try {
             await supabase.from('notifications').insert({
                 user_id: userId,
@@ -7018,7 +6810,7 @@
     }
 
     async function loadNotifications() {
-        if (!currentUser || !supabaseReady) return [];
+        if (!currentUser) return [];
         try {
             const { data } = await supabase
                 .from('notifications')
@@ -7031,7 +6823,7 @@
     }
 
     async function markNotificationsRead() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
         try {
             await supabase
                 .from('notifications')
@@ -7042,7 +6834,7 @@
     }
 
     async function updateNotifBadge() {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
         try {
             const { count } = await supabase
                 .from('notifications')
@@ -7102,8 +6894,6 @@
        RECEIPT GENERATION
        =========================================== */
     async function showReceipt(txnId) {
-        if (!supabaseReady) return;
-
         try {
             const { data: txn, error } = await supabase
                 .from('sale_transactions')
@@ -7211,7 +7001,7 @@
        DISPUTE FLOW
        =========================================== */
     async function openDispute(txnId) {
-        if (!currentUser || !supabaseReady) return;
+        if (!currentUser) return;
 
         const reason = prompt('Please describe the issue with this transaction:');
         if (!reason || !reason.trim()) return;
@@ -7250,7 +7040,7 @@
     }
 
     async function adminResolveDispute(disputeId, txnId, resolution) {
-        if (!isAdmin || !supabaseReady) return;
+        if (!isAdmin) return;
         const note = prompt(`Resolution note (${resolution}):`);
         if (note === null) return;
 
@@ -7284,7 +7074,7 @@
     }
 
     async function loadAdminDisputes() {
-        if (!isAdmin || !supabaseReady) return;
+        if (!isAdmin) return;
         try {
             const { data: disputes, error } = await supabase
                 .from('disputes')
@@ -7419,7 +7209,7 @@
 
         // Poll for unread messages and notifications every 30 seconds
         setInterval(() => {
-            if (currentUser && supabaseReady) {
+            if (currentUser) {
                 updateUnreadBadge();
                 updateNotifBadge();
             }
