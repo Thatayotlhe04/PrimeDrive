@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Supabase (loaded async — won't block page) -->
-    <script async id="supabaseScript" src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
     <style>
         /* ========================================
@@ -3497,7 +3497,7 @@
                             <div class="contact__item-icon"><i class="bi bi-envelope"></i></div>
                             <div>
                                 <div class="contact__item-label">Email</div>
-                                <div class="contact__item-value"><a href="mailto:PrimeDrive26@gmail.com">PrimeDrive26@gmail.com</a></div>
+                                <div class="contact__item-value"><a href="/cdn-cgi/l/email-protection#c494b6ada9a180b6adb2a1f6f284a3a9a5ada8eaa7aba9"><span class="__cf_email__" data-cfemail="8fdffde6e2eacbfde6f9eabdb9cfe8e2eee6e3a1ece0e2">[email&#160;protected]</span></a></div>
                             </div>
                         </div>
                         <div class="contact__item">
@@ -4317,7 +4317,7 @@
     <!-- ========================================
          JAVASCRIPT
          ======================================== -->
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     /* ===========================================
        DATA — EDIT LISTINGS HERE
        =========================================== */
@@ -4333,119 +4333,137 @@
     const WHATSAPP = "26777625997";
 
     // =============================================
-    // SUPABASE CONFIG — Replace with your project values
-    // =============================================
-    // Find these in: supabase.com > Your Project > Settings > API
+    /* ===========================================
+       SUPABASE CONFIG
+       ===========================================
+       HOW TO GET YOUR KEYS:
+       1. Go to supabase.com → your project
+       2. Click "Project Settings" (gear icon, bottom-left)
+       3. Click "API" in the sidebar
+       4. Copy "Project URL" → paste below as SUPABASE_URL
+       5. Copy "anon public" key (starts with eyJ...) → paste below as SUPABASE_ANON_KEY
+       =========================================== */
     const SUPABASE_URL = 'https://lbzaenivqbxjalhgrppw.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_L23K_alF_v5syG9saBe0pQ_Lv2HyIJw';
+    const SUPABASE_ANON_KEY = 'PASTE_YOUR_ANON_KEY_HERE';
+    // ↑↑↑ Must start with "eyJ" — it's a long JWT token, NOT "sb_publishable_..."
 
     let supabase = null;
     let supabaseReady = false;
 
-    // Initialize Supabase once the async script loads
-    function initSupabase() {
+    /* ===========================================
+       SUPABASE INIT (Clean & Stable)
+       =========================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Check library loaded
+        if (!window.supabase || !window.supabase.createClient) {
+            console.error('[PrimeDrive] Supabase JS library failed to load.');
+            showConnectionStatus('cdn-failed');
+            return;
+        }
+
+        // 2. Check config
+        if (SUPABASE_URL.includes('YOUR_PROJECT') || SUPABASE_ANON_KEY.includes('PASTE_YOUR')) {
+            console.warn('[PrimeDrive] Supabase not configured — placeholders still present.');
+            showConnectionStatus('not-configured');
+            return;
+        }
+
+        // 3. Validate key format
+        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
+            console.error('[PrimeDrive] Invalid API key format. Supabase anon keys start with "eyJ..."');
+            showConnectionStatus('bad-key');
+            return;
+        }
+
+        // 4. Create client
         try {
-            if (SUPABASE_URL.includes('YOUR_PROJECT_ID') || SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')) {
-                console.warn('[PrimeDrive] Supabase not configured — placeholders still present.');
-                showConnectionStatus('not-configured');
-                return;
-            }
-            if (!window.supabase || !window.supabase.createClient) {
-                console.warn('[PrimeDrive] Supabase JS library not loaded yet.');
-                showConnectionStatus('loading');
-                return;
-            }
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             supabaseReady = true;
-            console.log('[PrimeDrive] Supabase connected successfully.');
+            console.log('[PrimeDrive] Supabase client created.');
             showConnectionStatus('connected');
-            // Now that Supabase is ready, try restoring session
-            restoreSession();
-            // Reload data that may have shown "not connected" state
-            loadFeaturedListings();
-            loadMarketplaceListings();
-            // Listen for auth changes (handles OAuth redirects, token refresh, tab sync)
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                if (event === 'SIGNED_IN' && session && !currentUser) {
-                    // User just signed in (from OAuth redirect or session restore)
-                    currentUser = session.user;
-                    await loadProfile();
-                    onLoginSuccess();
-                    hideLogin();
-                } else if (event === 'SIGNED_OUT') {
-                    currentUser = null;
-                    currentProfile = null;
-                    isAdmin = false;
-                }
-            });
         } catch (err) {
-            console.warn('[PrimeDrive] Supabase init failed:', err.message);
+            console.error('[PrimeDrive] Supabase init error:', err);
             showConnectionStatus('error', err.message);
+            return;
         }
-    }
 
-    // Show connection status (temporary debug helper — tap PrimeDrive logo 5x to see)
+        // 5. Verify connection with a test query
+        (async () => {
+            try {
+                const { error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+                if (error) {
+                    console.warn('[PrimeDrive] Supabase connection test failed:', error.message);
+                    if (error.message.includes('Invalid API key') || error.message.includes('JWSError') || error.message.includes('invalid_jwt')) {
+                        showConnectionStatus('bad-key');
+                        supabaseReady = false;
+                        return;
+                    }
+                }
+                console.log('[PrimeDrive] Supabase connection verified.');
+            } catch (err) {
+                console.warn('[PrimeDrive] Connection test error:', err);
+            }
+        })();
+
+        // 6. Restore session
+        restoreSession();
+
+        // 7. Reload data
+        loadFeaturedListings();
+        loadMarketplaceListings();
+
+        // 8. Listen for auth changes (handles OAuth redirects, token refresh, tab sync)
+        supabase.auth.onAuthStateChange(async (event, session) => {
+            if (event === 'SIGNED_IN' && session && !currentUser) {
+                currentUser = session.user;
+                await loadProfile();
+                onLoginSuccess();
+                hideLogin();
+            } else if (event === 'SIGNED_OUT') {
+                currentUser = null;
+                currentProfile = null;
+                isAdmin = false;
+            }
+        });
+    });
+
+    /* ===========================================
+       CONNECTION STATUS & DEBUG TOOL
+       =========================================== */
     let logoTaps = 0;
     function showConnectionStatus(status, detail) {
-        var msg = {
-            'not-configured': 'Supabase URL/Key still has placeholder values',
-            'loading': 'Supabase JS library has not loaded (CDN may be slow)',
+        const messages = {
+            'not-configured': 'Supabase URL/Key still has placeholder values — edit index.html',
+            'loading': 'Supabase JS library loading...',
             'connected': 'Connected to Supabase',
             'error': 'Connection error: ' + (detail || 'unknown'),
-            'cdn-failed': 'Supabase CDN failed to load — check your internet connection'
-        }[status] || status;
-        window._pdStatus = msg;
-        console.log('[PrimeDrive Status] ' + msg);
+            'cdn-failed': 'Supabase CDN failed to load — check internet connection',
+            'bad-key': 'Invalid API key format. Go to Supabase > Project Settings > API > copy the "anon public" key (starts with eyJ...)'
+        };
+        window._pdStatus = messages[status] || status;
+        console.log('[PrimeDrive Status] ' + window._pdStatus);
     }
-    // Tap logo 5 times to see status
+
+    // Tap PrimeDrive logo 5 times to see debug info
     document.addEventListener('click', function(e) {
         if (e.target.closest('.nav__logo')) {
             logoTaps++;
             if (logoTaps >= 5) {
                 logoTaps = 0;
+                const keyPreview = SUPABASE_ANON_KEY.slice(0, 10) + '...';
+                const keyValid = SUPABASE_ANON_KEY.startsWith('eyJ') ? 'YES (JWT format)' : 'NO — must start with eyJ';
                 alert('[PrimeDrive Debug]\n\n' +
                     'Status: ' + (window._pdStatus || 'unknown') + '\n' +
                     'supabaseReady: ' + supabaseReady + '\n' +
-                    'URL set: ' + !SUPABASE_URL.includes('YOUR_PROJECT_ID') + '\n' +
-                    'Key set: ' + !SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY') + '\n' +
                     'Library loaded: ' + !!(window.supabase && window.supabase.createClient) + '\n' +
-                    'URL: ' + SUPABASE_URL.slice(0, 30) + '...');
+                    'URL: ' + SUPABASE_URL + '\n' +
+                    'Key preview: ' + keyPreview + '\n' +
+                    'Key valid format: ' + keyValid + '\n' +
+                    'User: ' + (currentUser ? currentUser.email : 'not logged in'));
             }
             setTimeout(() => { logoTaps = 0; }, 3000);
         }
     });
-
-    // Hook into the async script load
-    (function() {
-        var script = document.getElementById('supabaseScript');
-        if (script) {
-            script.addEventListener('load', function() {
-                console.log('[PrimeDrive] Supabase CDN script loaded.');
-                initSupabase();
-            });
-            script.addEventListener('error', function() {
-                console.warn('[PrimeDrive] Supabase CDN failed to load.');
-                showConnectionStatus('cdn-failed');
-                // Retry once after 3 seconds
-                setTimeout(function() {
-                    console.log('[PrimeDrive] Retrying Supabase CDN...');
-                    var retry = document.createElement('script');
-                    retry.src = 'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-                    retry.onload = function() {
-                        console.log('[PrimeDrive] Supabase loaded from fallback CDN.');
-                        initSupabase();
-                    };
-                    retry.onerror = function() {
-                        console.error('[PrimeDrive] Both CDNs failed. Check internet connection.');
-                        showConnectionStatus('cdn-failed');
-                    };
-                    document.head.appendChild(retry);
-                }, 3000);
-            });
-        }
-        // If script already loaded somehow
-        if (window.supabase && window.supabase.createClient) initSupabase();
-    })();
 
     // Auth state
     let currentUser = null;   // Supabase auth user
@@ -5587,13 +5605,19 @@
     }
 
     function getAuthError() {
-        if (SUPABASE_URL.includes('YOUR_PROJECT_ID') || SUPABASE_ANON_KEY.includes('YOUR_ANON_KEY')) {
-            return 'Supabase URL and Key have not been set in index.html.';
-        }
         if (!window.supabase || !window.supabase.createClient) {
-            return 'Supabase library failed to load. Check your internet connection and refresh the page.';
+            return 'Supabase library failed to load. Check your internet connection and refresh.';
         }
-        return 'Supabase connection failed. Check your URL and Key in index.html are correct.';
+        if (SUPABASE_ANON_KEY.includes('PASTE_YOUR') || SUPABASE_URL.includes('YOUR_PROJECT')) {
+            return 'Supabase is not configured. The API key needs to be pasted into index.html.';
+        }
+        if (!SUPABASE_ANON_KEY.startsWith('eyJ')) {
+            return 'Invalid API key format. Your key must start with "eyJ..." — go to Supabase > Project Settings > API > copy the anon public key.';
+        }
+        if (!supabaseReady) {
+            return 'Not connected to the database. Please refresh the page.';
+        }
+        return null;
     }
 
     async function handleLogin(e) {
@@ -5607,7 +5631,7 @@
         const password = document.getElementById('loginPassword').value;
 
         try {
-            if (!supabaseReady) throw new Error(getAuthError());
+            const authErr = getAuthError(); if (authErr) throw new Error(authErr);
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
             currentUser = data.user;
@@ -5623,8 +5647,9 @@
     }
 
     async function handleGoogleLogin() {
-        if (!supabaseReady) {
-            showLoginError(getAuthError());
+        const authErr = getAuthError();
+        if (authErr) {
+            showLoginError(authErr);
             return;
         }
         const btn = document.getElementById('googleLoginBtn');
@@ -5660,7 +5685,7 @@
         const whatsapp = document.getElementById('signupWhatsApp').value || null;
 
         try {
-            if (!supabaseReady) throw new Error(getAuthError());
+            const authErr = getAuthError(); if (authErr) throw new Error(authErr);
             const { data, error } = await supabase.auth.signUp({
                 email,
                 password,
@@ -7500,23 +7525,17 @@
 
 
     /* ===========================================
-       NAVIGATION — HASH-BASED DEEP LINKING
-       =========================================== */
-    function handleHashNavigation() {
-        const hash = window.location.hash.replace('#', '');
-        if (hash && document.getElementById('page-' + hash)) {
-            navigate(hash);
-        }
+   NAVIGATION — HASH-BASED DEEP LINKING
+   =========================================== */
+function handleHashNavigation() {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && document.getElementById('page-' + hash)) {
+        navigate(hash);
     }
-    window.addEventListener('hashchange', handleHashNavigation);
+}
 
-    // Override navigate to also update hash
-    const _origNavigate = navigate;
-    navigate = function(page) {
-        history.replaceState(null, '', '#' + page);
-        _origNavigate(page);
-    };
-
+window.addEventListener('hashchange', handleHashNavigation);
+window.addEventListener('load', handleHashNavigation);
 
     </script>
 </body>
