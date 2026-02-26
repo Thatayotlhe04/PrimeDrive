@@ -1,4 +1,4 @@
-# 🚗 PrimeDrive Botswana
+# PrimeDrive Botswana
 
 **Botswana's trusted car marketplace — Buy, Rent & Sell quality vehicles.**
 
@@ -9,7 +9,7 @@ PrimeDrive is a full-stack web application for buying, renting, and selling pre-
 
 ---
 
-## ✨ Features
+##Features
 
 - **Car Listings** — Browse, search, and filter vehicles by make, model, price, and location
 - **User Authentication** — Secure sign-up and login via Supabase Auth
@@ -20,7 +20,7 @@ PrimeDrive is a full-stack web application for buying, renting, and selling pre-
 - **Dark/Light Mode** — Theme toggle support
 - **SEO Optimized** — Meta tags, Open Graph, and semantic HTML
 
-## 🏗️ Tech Stack
+##Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -31,7 +31,7 @@ PrimeDrive is a full-stack web application for buying, renting, and selling pre-
 | **Payments** | Orange Money Web Pay API |
 | **Hosting** | Deployable to Render, Railway, Fly.io, or Vercel |
 
-## 📁 Project Structure
+##Project Structure
 
 ```
 PrimeDrive/
@@ -49,7 +49,7 @@ PrimeDrive/
     └── README.md           # Backend-specific docs
 ```
 
-## 🚀 Getting Started
+##Getting Started
 
 ### Prerequisites
 
@@ -115,7 +115,7 @@ python -m http.server 3000
 # Or use VS Code Live Server extension
 ```
 
-## 📡 API Overview
+## API Overview
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -134,7 +134,7 @@ python -m http.server 3000
 
 > See full API documentation at `/docs` when the server is running.
 
-## 💳 Subscription Tiers
+##Subscription Tiers
 
 | Tier | Price | Listings |
 |------|-------|----------|
@@ -143,7 +143,7 @@ python -m http.server 3000
 | Standard | P60/month | 10 |
 | Premium | P100/month | Unlimited |
 
-## 🤝 Contributing
+##Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
@@ -151,15 +151,15 @@ python -m http.server 3000
 4. Push to the branch: `git push origin feature/your-feature`
 5. Open a Pull Request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
 
-## 📬 Contact
+## Contact
 
 - **WhatsApp**: +267 77 625 997
 - **Location**: Gaborone, Botswana
 
 ---
 
-*Built with ❤️ for the Botswana car market.*
+*Built with love for the Botswana car market.*
