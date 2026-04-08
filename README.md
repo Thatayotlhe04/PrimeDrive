@@ -1,4 +1,4 @@
-# 🚗 PrimeDrive Botswana
+# PrimeDrive
 
 **Botswana's trusted car marketplace — Buy, Rent & Sell quality vehicles.**
 
