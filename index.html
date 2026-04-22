@@ -2779,8 +2779,8 @@
                 <div class="nav__theme-toggle" onclick="toggleTheme()" title="Toggle theme">
                     <i class="bi bi-moon" id="themeIcon"></i>
                 </div>
-                <a class="btn btn--ghost btn--sm" onclick="navigate('messages')" style="display:none;" id="navMessagesBtn" title="Messages">
-                    <i class="bi bi-chat-dots"></i> <span class="msg-badge" id="navMsgBadge" style="display:none;"></span>
+                <a class="btn btn--ghost btn--sm" onclick="navigate('messages')" style="display:none;" id="navMessagesBtn" title="AI Assistant">
+                    <i class="bi bi-stars"></i> <span class="msg-badge" id="navMsgBadge" style="display:none;"></span>
                 </a>
                 <div style="position:relative;display:none;" id="navNotifWrap">
                     <a class="btn btn--ghost btn--sm" onclick="showNotifPanel()" title="Notifications" style="position:relative;">
@@ -2829,7 +2829,7 @@
         </a>
         <div class="mobile-nav__divider"></div>
         <a class="btn btn--primary btn--full" onclick="navigate('messages'); toggleMobileNav();" style="margin-top:8px;display:none;" id="mobileMessagesBtn">
-            <i class="bi bi-chat-dots"></i> Messages
+            <i class="bi bi-stars"></i> AI Assistant
         </a>
         <a class="mobile-nav__link" id="mobileLoginBtn" onclick="showLogin(); toggleMobileNav();">
             <i class="bi bi-person"></i> Login
@@ -3362,7 +3362,7 @@
                             Hi, I'm Thatayotlhe Tsenang, a 21-year-old second-year student at UB. I started PrimeDrive to solve a problem I noticed in Botswana's car market.
                         </p>
                         <p class="about__text">
-                            The goal with this platform is simple: reduce the friction between car buyers and sellers. Instead of actively searching through dozens of online posts and unclear listings, everything is in one place &mdash; easy to browse, easy to contact sellers, and transparent.
+                            The goal with this platform is simple: reduce the friction between car buyers and sellers. Instead of actively searching through dozens of online posts and unclear listings, everything is in one place &mdash; easy to browse, easy to message sellers in-app, and transparent. All protected deal benefits are limited to in-app chat + in-app payment milestones.
                         </p>
                         <p class="about__text">
                             Based in Gaborone, I'm building PrimeDrive to connect buyers and sellers across Botswana. Whether you're looking for your first car or ready to sell, I'm here to make the process easier.
@@ -3504,7 +3504,7 @@
                             <i class="bi bi-list-ul"></i> My Listings
                         </button>
                         <button class="btn btn--ghost btn--sm" onclick="navigate('messages')">
-                            <i class="bi bi-chat-dots"></i> Messages
+                            <i class="bi bi-stars"></i> AI Assistant
                         </button>
                         <button class="btn btn--secondary btn--sm" onclick="navigate('sell')">
                             <i class="bi bi-plus-circle"></i> New Listing
@@ -3519,7 +3519,7 @@
                 <div id="buyerPurchasesSection" style="margin:24px 0;display:none;">
                     <h3 class="heading-sm" style="margin-bottom:12px;"><i class="bi bi-bag-check"></i> My Purchases</h3>
                     <div class="admin__table-wrap">
-                        <table class="admin__table">
+                    <table class="admin__table">
                             <thead>
                                 <tr>
                                     <th>Ref</th>
@@ -3825,6 +3825,11 @@
                     </div>
 
                     <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-item__q">Do protections apply if we move off-platform?<i class="bi bi-chevron-down"></i></div>
+                        <div class="faq-item__a"><p>No. PrimeDrive dispute protection, verified buyer/seller trust benefits, and accelerated support SLAs only apply when both communication and payment remain in-app. Sharing phone numbers or external links in chat may be blocked to keep deals protected.</p></div>
+                    </div>
+
+                    <div class="faq-item" onclick="toggleFaq(this)">
                         <div class="faq-item__q">Can I cancel my subscription?<i class="bi bi-chevron-down"></i></div>
                         <div class="faq-item__a"><p>Absolutely. You can cancel or downgrade anytime by contacting us. There are no cancellation fees or long-term contracts. Your current plan stays active until the end of the billing period.</p></div>
                     </div>
@@ -3959,6 +3964,24 @@
                         <div class="admin__stat-card">
                             <div class="admin__stat-label">Total GMV</div>
                             <div class="admin__stat-value" id="statGMV">P0</div>
+                        </div>
+                    </div>
+                    <div class="admin__stats" style="margin-bottom:24px;">
+                        <div class="admin__stat-card">
+                            <div class="admin__stat-label">Blocked Contact Attempts</div>
+                            <div class="admin__stat-value" id="statBlockedAttempts">0</div>
+                        </div>
+                        <div class="admin__stat-card">
+                            <div class="admin__stat-label">Off-Platform Intent Signals</div>
+                            <div class="admin__stat-value" id="statOffPlatformSignals">0</div>
+                        </div>
+                        <div class="admin__stat-card">
+                            <div class="admin__stat-label">Conversation → Purchase</div>
+                            <div class="admin__stat-value" id="statConvPurchase">0%</div>
+                        </div>
+                        <div class="admin__stat-card">
+                            <div class="admin__stat-label">Protected In-App Deals</div>
+                            <div class="admin__stat-value" id="statProtectedDeals">0</div>
                         </div>
                     </div>
                     <table class="admin__table">
@@ -4168,25 +4191,36 @@
             <div class="container">
                 <div class="listings__header">
                     <div class="listings__header-text">
-                        <div class="label"><i class="bi bi-chat-dots"></i> Messages</div>
-                        <h1 class="heading-lg">Inbox</h1>
+                        <div class="label"><i class="bi bi-stars"></i> AI Assistant</div>
+                        <h1 class="heading-lg">Assistant Workspace</h1>
                         <div class="listings__count" id="msgCount">Loading...</div>
                     </div>
                 </div>
 
                 <div class="msg-layout">
-                    <!-- Conversation List -->
-                    <div class="msg-list" id="msgConvList">
-                        <div style="text-align:center;padding:40px;color:var(--text-tertiary);">
-                            <i class="bi bi-arrow-repeat spin" style="font-size:1.5rem;"></i>
+                    <div class="msg-list" id="assistantQuickActions">
+                        <div style="padding:16px;border-bottom:1px solid var(--border-light);font-weight:700;">Quick Actions</div>
+                        <div style="padding:14px;display:grid;gap:10px;">
+                            <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to buy this car safely. What should I do first?')"><i class="bi bi-bag-check"></i> Buyer Help</button>
+                            <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to sell faster. Suggest my next best action.')"><i class="bi bi-tag"></i> Seller Help</button>
+                            <button class="btn btn--ghost btn--full" onclick="requestNextStep()"><i class="bi bi-signpost"></i> Suggest Next Step</button>
+                            <button class="btn btn--ghost btn--full" onclick="reviewCurrentListing()"><i class="bi bi-clipboard2-check"></i> Review Listing (Premium)</button>
                         </div>
+                        <div style="padding:12px 14px;color:var(--text-tertiary);font-size:0.82rem;">The assistant can direct you to checkout, disputes, listings, messages, or upgrades.</div>
                     </div>
 
-                    <!-- Chat Panel -->
                     <div class="msg-chat" id="msgChatPanel">
-                        <div class="msg-chat__empty">
-                            <i class="bi bi-chat-dots" style="font-size:2.5rem;color:var(--text-tertiary);"></i>
-                            <p style="margin-top:12px;color:var(--text-tertiary);">Select a conversation to start messaging</p>
+                        <div class="msg-chat__header">
+                            <div class="msg-conv__avatar"><i class="bi bi-stars"></i></div>
+                            <div>
+                                <div class="msg-chat__header-name">PrimeDrive AI Assistant</div>
+                                <div class="msg-chat__header-listing">Buyer/Seller guidance with in-app actions</div>
+                            </div>
+                        </div>
+                        <div class="msg-chat__body" id="assistantChatBody"></div>
+                        <div class="msg-chat__input">
+                            <input type="text" id="assistantInput" placeholder="Ask about buying, selling, checkout, disputes, or upgrades..." onkeydown="if(event.key==='Enter')sendAssistantQuery()" maxlength="2000" autocomplete="off">
+                            <button onclick="sendAssistantQuery()"><i class="bi bi-send"></i></button>
                         </div>
                     </div>
                 </div>
@@ -4374,7 +4408,7 @@
         if (page === 'home') loadFeaturedListings();
         if (page === 'buy') loadMarketplaceListings();
         if (page === 'mylistings') loadMyListings();
-        if (page === 'messages') loadConversations();
+        if (page === 'messages') initAssistantPanel();
         if (page === 'dashboard') loadBuyerPurchases();
         if (page === 'sell' && !currentUser) { showLogin(); return; }
 
@@ -4996,12 +5030,11 @@
                         <button class="btn btn--accent" onclick="initCheckout('${listing.id}')">
                             <i class="bi bi-bag-check"></i> Buy This Car
                         </button>
-
                         <div class="listing-detail__deposit-info">
-                            <strong>Secure Transaction</strong><br>
+                            <strong>In-App Protection Policy</strong><br>
                             Platform commission: <strong>${commission}</strong><br>
                             Seller receives: <strong>${formatPrice(Number(listing.price) - Number(listing.price) * (price < 100000 ? 0.05 : 0.065))}</strong><br><br>
-                            Pay securely through PrimeDrive. Commission is deducted automatically on completed sales.
+                            To protect both parties, contact details are blocked in chat and all communication must stay in PrimeDrive messages linked to this listing. Buyer protection, dispute support, and faster SLA handling only apply to in-app communication and in-app payment milestones.
                         </div>
                     </div>
                 </div>
@@ -5023,13 +5056,27 @@
         document.querySelectorAll('.listing-detail__thumb').forEach(t => t.classList.remove('active'));
         if (thumbEl) thumbEl.classList.add('active');
     }
-
-
     /* ===========================================
-       LEAD GENERATION & CONTACT
+       IN-APP CONTACT POLICY
        =========================================== */
     function generateLeadCode() {
         return 'PD-' + Math.floor(10000 + Math.random() * 90000);
+    }
+
+    function getDepositAmount(price) {
+        if (price >= 200000) return 2000;
+        if (price >= 100000) return 1000;
+        return 500;
+    }
+
+    async function contactSeller(listingId) {
+        const listing = currentListingDetail || marketplaceListings.find(l => l.id === listingId);
+        if (!listing) return;
+        return startConversation(listing.id, listing.user_id);
+    }
+
+    async function requestVerifiedDeal(listingId) {
+        return initCheckout(listingId);
     }
 
 
@@ -5465,8 +5512,7 @@
         if (navNotifWrap) navNotifWrap.style.display = 'none';
         var notifPanel = document.getElementById('notifPanel');
         if (notifPanel) notifPanel.style.display = 'none';
-        if (messageSubscription) { messageSubscription.unsubscribe(); messageSubscription = null; }
-        activeConversation = null;
+        assistantThreadId = null;
 
         // Reset tier buttons to default
         resetTierButtons();
@@ -5501,263 +5547,156 @@
 
 
     /* ===========================================
-       IN-APP MESSAGING
+       AI ASSISTANT PANEL
        =========================================== */
-    let activeConversation = null;
-    let messageSubscription = null;
-    let allConversations = [];
+    let assistantThreadId = null;
+    const API_BASE = localStorage.getItem('pd_api_base') || 'http://localhost:8000';
 
     async function startConversation(listingId, sellerId) {
         if (!currentUser) { showLogin(); return; }
-        if (currentUser.id === sellerId) { alert('This is your own listing.'); return; }
-        try {
-            // Check if conversation already exists
-            const { data: existing } = await supabase
-                .from('conversations')
-                .select('id')
-                .eq('listing_id', listingId)
-                .eq('buyer_id', currentUser.id)
-                .eq('seller_id', sellerId)
-                .single();
-
-            if (existing) {
-                navigate('messages');
-                setTimeout(() => openChat(existing.id), 300);
-                return;
+        navigate('messages');
+        setTimeout(() => {
+            const input = document.getElementById('assistantInput');
+            if (input) {
+                input.value = `I am interested in listing ${listingId}. What should I ask the seller first?`;
+                input.focus();
             }
-
-            // Create new conversation
-            const { data: conv, error } = await supabase
-                .from('conversations')
-                .insert({ listing_id: listingId, buyer_id: currentUser.id, seller_id: sellerId })
-                .select()
-                .single();
-
-            if (error) throw error;
-
-            const leadCode = generateLeadCode();
-            await supabase.from('leads').insert({
-                lead_code: leadCode,
-                listing_id: listingId,
-                buyer_id: currentUser.id,
-                seller_id: sellerId,
-                lead_type: 'in_app_message',
-                status: 'open',
-            }).then(() => {
-                supabase.rpc('increment_message_initiated_count', { listing_uuid: listingId }).catch(() => {});
-            }).catch(() => {});
-
-            navigate('messages');
-            setTimeout(() => {
-                loadConversations();
-                openChat(conv.id);
-            }, 300);
-
-        } catch (err) {
-            console.error('Start conversation error:', err);
-            alert('Could not start conversation. Please try again.');
-        }
+        }, 250);
     }
 
-    async function loadConversations() {
-        if (!currentUser) return;
-        const listEl = document.getElementById('msgConvList');
+    function initAssistantPanel() {
+        const body = document.getElementById('assistantChatBody');
         const countEl = document.getElementById('msgCount');
-        if (!listEl) return;
-
-        try {
-            const { data: convs, error } = await supabase
-                .from('conversations')
-                .select(`
-                    *,
-                    listings(make, model, year, main_photo),
-                    buyer:profiles!conversations_buyer_id_fkey(full_name, email),
-                    seller:profiles!conversations_seller_id_fkey(full_name, email)
-                `)
-                .or(`buyer_id.eq.${currentUser.id},seller_id.eq.${currentUser.id}`)
-                .order('last_message_at', { ascending: false, nullsFirst: false });
-
-            if (error) throw error;
-            allConversations = convs || [];
-
-            if (allConversations.length === 0) {
-                countEl.textContent = 'No conversations yet';
-                listEl.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-tertiary);">
-                    <i class="bi bi-chat-dots" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
-                    When you message a seller, your conversations will appear here.
-                </div>`;
-                return;
-            }
-
-            countEl.textContent = allConversations.length + ' conversation' + (allConversations.length !== 1 ? 's' : '');
-
-            // Get unread counts per conversation
-            const { data: unreads } = await supabase
-                .from('messages')
-                .select('conversation_id')
-                .eq('read', false)
-                .neq('sender_id', currentUser.id);
-
-            const unreadMap = {};
-            (unreads || []).forEach(m => {
-                unreadMap[m.conversation_id] = (unreadMap[m.conversation_id] || 0) + 1;
-            });
-
-            listEl.innerHTML = allConversations.map(c => {
-                const other = c.buyer_id === currentUser.id ? c.seller : c.buyer;
-                const otherName = other ? (other.full_name || other.email || 'User') : 'User';
-                const initial = otherName.charAt(0).toUpperCase();
-                const listing = c.listings;
-                const carLabel = listing ? `${listing.make} ${listing.model}` : 'Listing';
-                const preview = c.last_message || 'No messages yet';
-                const time = c.last_message_at ? timeAgo(new Date(c.last_message_at)) : '';
-                const unread = unreadMap[c.id] || 0;
-                const isActive = activeConversation === c.id ? ' msg-conv--active' : '';
-
-                return `<div class="msg-conv${isActive}" onclick="openChat('${c.id}')">
-                    <div class="msg-conv__avatar">${initial}</div>
-                    <div class="msg-conv__info">
-                        <div class="msg-conv__name">${otherName}</div>
-                        <div class="msg-conv__preview">${carLabel} · ${escapeHTML(preview.slice(0, 50))}</div>
-                    </div>
-                    <div class="msg-conv__meta">
-                        <span class="msg-conv__time">${time}</span>
-                        ${unread > 0 ? `<span class="msg-conv__unread">${unread}</span>` : ''}
-                    </div>
-                </div>`;
-            }).join('');
-
-        } catch (err) {
-            console.error('Load conversations error:', err);
-            listEl.innerHTML = '<div style="padding:20px;color:var(--text-tertiary);text-align:center;">Could not load conversations.</div>';
+        if (!body) return;
+        if (!currentUser) {
+            body.innerHTML = `<div class="msg-chat__empty"><i class="bi bi-lock"></i><p style="margin-top:10px;color:var(--text-tertiary);">Login to use AI Assistant.</p></div>`;
+            if (countEl) countEl.textContent = 'Login required';
+            return;
         }
+        if (!body.dataset.ready) {
+            body.innerHTML = '';
+            renderAssistantBubble('assistant', 'Hi! I can help with buying, selling, checkout, disputes, and plan upgrades.');
+            body.dataset.ready = '1';
+        }
+        if (countEl) countEl.textContent = 'Live assistant ready';
     }
 
-    async function openChat(convId) {
-        activeConversation = convId;
-        const panel = document.getElementById('msgChatPanel');
-        if (!panel) return;
-
-        const conv = allConversations.find(c => c.id === convId);
-        if (!conv) { await loadConversations(); return; }
-
-        const other = conv.buyer_id === currentUser.id ? conv.seller : conv.buyer;
-        const otherName = other ? (other.full_name || other.email || 'User') : 'User';
-        const initial = otherName.charAt(0).toUpperCase();
-        const listing = conv.listings;
-        const carLabel = listing ? `${listing.make} ${listing.model} ${listing.year || ''}` : '';
-
-        panel.innerHTML = `
-            <div class="msg-chat__header">
-                <div class="msg-conv__avatar">${initial}</div>
-                <div>
-                    <div class="msg-chat__header-name">${otherName}</div>
-                    <div class="msg-chat__header-listing">${carLabel}</div>
-                </div>
-            </div>
-            <div class="msg-chat__body" id="chatBody"></div>
-            <div class="msg-chat__input">
-                <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMessage()" maxlength="2000" autocomplete="off">
-                <button onclick="sendMessage()"><i class="bi bi-send"></i></button>
-            </div>
-        `;
-
-        // Load messages
-        await loadMessages(convId);
-
-        // Mark as read
-        await supabase
-            .from('messages')
-            .update({ read: true })
-            .eq('conversation_id', convId)
-            .neq('sender_id', currentUser.id)
-            .eq('read', false);
-
-        // Subscribe to new messages via Realtime
-        if (messageSubscription) messageSubscription.unsubscribe();
-        messageSubscription = supabase
-            .channel('chat-' + convId)
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'messages',
-                filter: 'conversation_id=eq.' + convId
-            }, (payload) => {
-                appendMessage(payload.new);
-                // Auto-mark as read if we're viewing this chat
-                if (payload.new.sender_id !== currentUser.id) {
-                    supabase.from('messages').update({ read: true }).eq('id', payload.new.id).then(() => {});
-                }
-            })
-            .subscribe();
-
-        // Update active state in list
-        document.querySelectorAll('.msg-conv').forEach(el => el.classList.remove('msg-conv--active'));
-        const convEl = document.querySelector(`.msg-conv[onclick="openChat('${convId}')"]`);
-        if (convEl) convEl.classList.add('msg-conv--active');
-
-        // Focus input
-        document.getElementById('chatInput')?.focus();
-    }
-
-    async function loadMessages(convId) {
-        const body = document.getElementById('chatBody');
+    function renderAssistantBubble(role, text, actions = []) {
+        const body = document.getElementById('assistantChatBody');
         if (!body) return;
-
-        const { data: msgs, error } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', convId)
-            .order('created_at', { ascending: true })
-            .limit(100);
-
-        if (error) { console.error(error); return; }
-
-        body.innerHTML = (msgs || []).map(m => messageBubble(m)).join('');
+        const mine = role === 'user';
+        const cls = mine ? 'msg-bubble--sent' : 'msg-bubble--received';
+        const safeText = escapeHTML(text || '');
+        const actionsHtml = (actions || []).map(a => {
+            const route = a.target_route || 'home';
+            const tid = a.target_id || '';
+            return `<button class="btn btn--ghost btn--sm" style="margin-top:8px;margin-right:8px;" onclick="handleAssistantAction('${escapeHTML(route)}','${escapeHTML(tid)}')">${escapeHTML(a.title || 'Open')}</button>`;
+        }).join('');
+        body.insertAdjacentHTML('beforeend', `<div class="msg-bubble ${cls}">${safeText}${actionsHtml ? `<div>${actionsHtml}</div>` : ''}</div>`);
         body.scrollTop = body.scrollHeight;
     }
 
-    function messageBubble(m) {
-        const isMine = m.sender_id === currentUser.id;
-        const cls = isMine ? 'msg-bubble--sent' : 'msg-bubble--received';
-        const time = new Date(m.created_at).toLocaleTimeString('en-BW', { hour: '2-digit', minute: '2-digit' });
-        return `<div class="msg-bubble ${cls}">
-            ${escapeHTML(m.body)}
-            <div class="msg-bubble__time">${time}</div>
-        </div>`;
+    function handleAssistantAction(route, targetId) {
+        if (route === 'checkout' && targetId) {
+            initCheckout(targetId);
+            return;
+        }
+        navigate(route || 'home');
     }
 
-    function appendMessage(m) {
-        const body = document.getElementById('chatBody');
-        if (!body) return;
-        body.insertAdjacentHTML('beforeend', messageBubble(m));
-        body.scrollTop = body.scrollHeight;
+    async function assistantApi(path, payload) {
+        const { data } = await supabase.auth.getSession();
+        const token = data?.session?.access_token;
+        if (!token) throw new Error('Login required');
+
+        const res = await fetch(`${API_BASE}${path}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.detail?.message || json.detail || 'Assistant request failed');
+        return json;
     }
 
-    async function sendMessage() {
-        const input = document.getElementById('chatInput');
-        if (!input || !activeConversation || !currentUser) return;
-        const text = input.value.trim();
-        if (!text) return;
+    async function sendAssistantQuery() {
+        const input = document.getElementById('assistantInput');
+        if (!input || !currentUser) return;
+        const message = input.value.trim();
+        if (!message) return;
 
         input.value = '';
-        input.disabled = true;
+        renderAssistantBubble('user', message);
 
         try {
-            const { error } = await supabase.from('messages').insert({
-                conversation_id: activeConversation,
-                sender_id: currentUser.id,
-                body: text
+            const out = await assistantApi('/assistant/query', {
+                thread_id: assistantThreadId,
+                message,
             });
-            if (error) throw error;
+            assistantThreadId = out.thread_id;
+            renderAssistantBubble('assistant', out.response, out.actions || []);
+            if (out.entitlement?.requires_upgrade) {
+                renderAssistantBubble('assistant', out.entitlement.message || 'Upgrade required for this feature.');
+            }
         } catch (err) {
-            console.error('Send message error:', err);
-            input.value = text;
-            alert('Failed to send message.');
+            renderAssistantBubble('assistant', `I could not answer right now: ${err.message}`);
+        }
+    }
+
+    function askAssistantPreset(message) {
+        navigate('messages');
+        const input = document.getElementById('assistantInput');
+        if (!input) return;
+        input.value = message;
+        sendAssistantQuery();
+    }
+
+    async function requestNextStep() {
+        if (!currentUser) { showLogin(); return; }
+        try {
+            const out = await assistantApi('/assistant/suggest-next-step', {
+                thread_id: assistantThreadId,
+                goal: 'Suggest my next best in-app action',
+                current_route: document.querySelector('.page.active')?.id || 'unknown',
+            });
+            assistantThreadId = out.thread_id;
+            renderAssistantBubble('assistant', out.reason || 'Here is your next step.', [out.suggested_action]);
+        } catch (err) {
+            renderAssistantBubble('assistant', err.message || 'Could not suggest next step.');
+        }
+    }
+
+    async function reviewCurrentListing() {
+        if (!currentUser) { showLogin(); return; }
+        const sample = marketplaceListings && marketplaceListings[0];
+        if (!sample) {
+            renderAssistantBubble('assistant', 'Open Buy page first so I can infer a listing sample to review.');
+            return;
         }
 
-        input.disabled = false;
-        input.focus();
+        try {
+            const out = await assistantApi('/assistant/listing-review', {
+                thread_id: assistantThreadId,
+                listing_id: sample.id,
+                listing_type: sample.listing_type || 'sale',
+                brand: sample.brand || sample.make || 'Unknown',
+                model: sample.model || 'Unknown',
+                year: sample.year || 2020,
+                mileage: sample.mileage || 0,
+                price: sample.price || 0,
+                location: sample.location || 'Unknown',
+                condition: sample.condition || 'used',
+                notes: sample.notes || '',
+            });
+            assistantThreadId = out.thread_id;
+            const suggestionText = (out.suggestions || []).map(s => `- ${s}`).join('\n');
+            renderAssistantBubble('assistant', `${out.summary}\n\nSuggestions:\n${suggestionText}`);
+        } catch (err) {
+            renderAssistantBubble('assistant', err.message || 'Listing review failed.');
+        }
     }
 
     function escapeHTML(str) {
@@ -5766,32 +5705,10 @@
         return d.innerHTML;
     }
 
-    function timeAgo(date) {
-        const now = new Date();
-        const diff = Math.floor((now - date) / 1000);
-        if (diff < 60) return 'now';
-        if (diff < 3600) return Math.floor(diff / 60) + 'm';
-        if (diff < 86400) return Math.floor(diff / 3600) + 'h';
-        if (diff < 604800) return Math.floor(diff / 86400) + 'd';
-        return date.toLocaleDateString('en-BW', { day: 'numeric', month: 'short' });
-    }
-
     async function updateUnreadBadge() {
-        if (!currentUser) return;
-        try {
-            const { data } = await supabase.rpc('get_unread_count', { user_uuid: currentUser.id });
-            const badge = document.getElementById('navMsgBadge');
-            if (badge) {
-                if (data && data > 0) {
-                    badge.textContent = data > 99 ? '99+' : data;
-                    badge.style.display = 'inline-flex';
-                } else {
-                    badge.style.display = 'none';
-                }
-            }
-        } catch (err) { /* silent */ }
+        const badge = document.getElementById('navMsgBadge');
+        if (badge) badge.style.display = 'none';
     }
-
 
     /* ===========================================
        CHECKOUT / TRANSACTIONS
@@ -5807,7 +5724,7 @@
         try {
             const { data: listing, error } = await supabase
                 .from('listings')
-                .select('*, listing_photos(photo_url, display_order), profiles(full_name, email)')
+                .select('*, listing_photos(photo_url, display_order), profiles(full_name, email, is_verified)')
                 .eq('id', listingId)
                 .single();
 
@@ -5823,6 +5740,7 @@
             const price = Number(listing.price);
             const seller = listing.profiles;
             const sellerName = seller ? (seller.full_name || seller.email) : 'Seller';
+            const sellerBadge = seller?.is_verified ? '<span class="listing-detail__badge listing-detail__badge--verified" style="font-size:0.68rem;margin-left:8px;"><i class="bi bi-patch-check-fill"></i> Verified Seller</span>' : '<span class="listing-detail__badge listing-detail__badge--unverified" style="font-size:0.68rem;margin-left:8px;"><i class="bi bi-clock"></i> Unverified Seller</span>';
 
             // Get commission rate from database
             const { data: rate } = await supabase.rpc('get_commission_rate', { price: price });
@@ -5836,7 +5754,7 @@
                         ${photo ? `<img src="${photo}" alt="${listing.make} ${listing.model}">` : ''}
                         <div class="checkout-card__car-info">
                             <h3>${listing.make} ${listing.model} ${listing.year || ''}</h3>
-                            <p style="font-size:0.82rem;color:var(--text-tertiary);">Sold by ${sellerName}</p>
+                            <p style="font-size:0.82rem;color:var(--text-tertiary);">Sold by ${sellerName}${sellerBadge}</p>
                             <p style="font-size:0.82rem;color:var(--text-tertiary);">${listing.location || ''}</p>
                         </div>
                     </div>
@@ -5881,7 +5799,7 @@
                             <i class="bi bi-lock"></i> Confirm &amp; Get Payment Details
                         </button>
                         <p style="text-align:center;font-size:0.75rem;color:var(--text-tertiary);margin-top:12px;">
-                            Secure transaction powered by PrimeDrive. Commission is deducted from the seller, not you.
+                            Secure transaction powered by PrimeDrive. Buyer protection, dispute coverage, and fast support SLAs unlock only after in-app milestones (Payment Submitted → Verified → Released).
                         </p>
                     </div>
                 </div>
@@ -5956,7 +5874,7 @@
                4. Amount: <strong>${formatPrice(txn.gross_amount)}</strong><br>
                5. Use reference: <strong>${txn.transaction_ref}</strong><br>
                6. Confirm the transfer<br>
-               7. Come back here and tap "I've Paid"`
+               7. Come back here and tap "I've Paid"<br><br><em>Protection notice:</em> PrimeDrive dispute handling and accelerated support apply only to in-app payments and in-app chat records.`
             : `<strong>Bank Transfer Instructions:</strong><br>
                Bank: First National Bank Botswana<br>
                Account Name: PrimeDrive (Pty) Ltd<br>
@@ -5964,7 +5882,7 @@
                Branch Code: <strong>282267</strong><br>
                Amount: <strong>${formatPrice(txn.gross_amount)}</strong><br>
                Reference: <strong>${txn.transaction_ref}</strong><br><br>
-               After sending, come back here and tap "I've Paid"`;
+               After sending, come back here and tap "I've Paid"<br><br><em>Protection notice:</em> PrimeDrive dispute handling and accelerated support apply only to in-app payments and in-app chat records.`;
 
         content.innerHTML = `
             <div class="checkout-card">
@@ -5990,7 +5908,7 @@
                     </div>
                     <div class="checkout-card__row">
                         <span>Status</span>
-                        <span style="color:#f59e0b;font-weight:600;">Awaiting Payment</span>
+                        <span style="color:#f59e0b;font-weight:600;">Awaiting Payment (Milestone 1/3)</span>
                     </div>
                 </div>
 
@@ -6033,7 +5951,7 @@
                     <i class="bi bi-hourglass-split" style="font-size:3rem;color:var(--accent);"></i>
                     <h3 style="margin-top:16px;">Payment Submitted</h3>
                     <p style="color:var(--text-tertiary);margin-top:8px;max-width:400px;margin-left:auto;margin-right:auto;">
-                        We're verifying your payment. You'll be notified once it's confirmed and the seller has been paid. This usually takes less than 24 hours.
+                        We're verifying your payment. You'll be notified as your milestones progress: Payment Submitted, Verified, then Seller Payout Released. In-app dispute protection and priority support SLA are active only for transactions completed through these in-app milestones.
                     </p>
                     <button class="btn btn--primary" onclick="navigate('buy')" style="margin-top:24px;">
                         <i class="bi bi-arrow-left"></i> Back to Marketplace
@@ -6300,6 +6218,9 @@
 
             // Also load disputes
             await loadAdminDisputes();
+
+            // Leakage and conversion metrics
+            await loadLeakageMetrics();
         } catch (err) {
             console.error('Admin data load error:', err);
         }
@@ -6407,6 +6328,40 @@
         }
     }
 
+
+    async function loadLeakageMetrics() {
+        if (!isAdmin) return;
+        try {
+            const { data: moderationEvents } = await supabase
+                .from('conversation_moderation_events')
+                .select('id, action, intent_score, conversation_id, created_at')
+                .order('created_at', { ascending: false })
+                .limit(500);
+
+            const { data: convs } = await supabase
+                .from('conversations')
+                .select('id, listing_id');
+
+            const { data: txns } = await supabase
+                .from('sale_transactions')
+                .select('id, listing_id, status')
+                .in('status', ['PAID', 'PENDING_RELEASE', 'RELEASED']);
+
+            const events = moderationEvents || [];
+            const blocked = events.filter(e => e.action === 'BLOCK').length;
+            const signals = events.filter(e => Number(e.intent_score || 0) > 0).length;
+            const conversationCount = (convs || []).length;
+            const purchases = (txns || []).length;
+            const conversion = conversationCount ? Math.round((purchases / conversationCount) * 100) : 0;
+
+            document.getElementById('statBlockedAttempts').textContent = blocked;
+            document.getElementById('statOffPlatformSignals').textContent = signals;
+            document.getElementById('statConvPurchase').textContent = conversion + '%';
+            document.getElementById('statProtectedDeals').textContent = purchases;
+        } catch (err) {
+            console.warn('Leakage metrics unavailable:', err.message || err);
+        }
+    }
 
     /* ===========================================
        ADMIN — SALE TRANSACTIONS

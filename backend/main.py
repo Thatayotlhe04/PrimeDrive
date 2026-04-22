@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Tuple
 from datetime import datetime, timedelta, timezone
 import requests
 import uuid
@@ -968,6 +968,314 @@ async def delete_listing(listing_id: str, user=Depends(get_current_user)):
         raise HTTPException(status_code=404, detail="Listing not found")
 
     return None
+
+
+# ========================================
+# AI Assistant Endpoints
+# ========================================
+PREMIUM_ASSISTANT_TIERS = {"premium"}
+
+
+def _assistant_upgrade_gate(current_tier: str, required_tier: str = "premium") -> AssistantEntitlementGate:
+    return AssistantEntitlementGate(
+        requires_upgrade=True,
+        current_tier=current_tier,
+        required_tier=required_tier,
+        message="This AI feature is available on Premium. Upgrade to unlock advanced assistant actions.",
+        upgrade_cta="Upgrade to Premium"
+    )
+
+
+async def _get_user_tier(user_id: str) -> str:
+    sub_info = await check_and_enforce_subscription(user_id)
+    return sub_info["tier"]["name"]
+
+
+def _save_assistant_message(thread_id: str, user_id: str, role: str, content: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    msg_id = str(uuid.uuid4())
+    supabase.from_("assistant_messages").insert({
+        "id": msg_id,
+        "thread_id": thread_id,
+        "user_id": user_id,
+        "role": role,
+        "content": content,
+        "metadata": metadata or {},
+    }).execute()
+    return msg_id
+
+
+def _save_assistant_action(thread_id: str, user_id: str, action: AssistantAction, metadata: Optional[Dict[str, Any]] = None):
+    supabase.from_("assistant_actions").insert({
+        "id": str(uuid.uuid4()),
+        "thread_id": thread_id,
+        "user_id": user_id,
+        "action_type": action.action_type,
+        "title": action.title,
+        "description": action.description,
+        "target_route": action.target_route,
+        "target_id": action.target_id,
+        "metadata": metadata or {},
+    }).execute()
+
+
+def _get_or_create_assistant_thread(user_id: str, thread_id: Optional[str], title_seed: str) -> str:
+    if thread_id:
+        existing = supabase.from_("assistant_threads")             .select("id")             .eq("id", thread_id)             .eq("user_id", user_id)             .single()             .execute()
+        if not existing.data:
+            raise HTTPException(status_code=404, detail="Assistant thread not found")
+        return thread_id
+
+    new_thread_id = str(uuid.uuid4())
+    supabase.from_("assistant_threads").insert({
+        "id": new_thread_id,
+        "user_id": user_id,
+        "title": title_seed[:120],
+        "status": "active",
+        "source": "in_app_assistant",
+    }).execute()
+    return new_thread_id
+
+
+def _touch_assistant_thread(thread_id: str):
+    supabase.from_("assistant_threads").update({
+        "last_message_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("id", thread_id).execute()
+
+
+def _build_assistant_query_response(message: str, listing_id: Optional[str]) -> Tuple[str, List[AssistantAction], List[AssistantToolOutput]]:
+    text = message.lower()
+    actions: List[AssistantAction] = []
+    tools: List[AssistantToolOutput] = []
+
+    if "dispute" in text or "refund" in text or "scam" in text:
+        response = "I can help you open a dispute. Gather screenshots, proof of payment, and listing details, then submit a dispute in-app."
+        actions.append(AssistantAction(
+            action_type="open_dispute",
+            title="Open Dispute",
+            description="Start a dispute flow with your transaction details.",
+            target_route="disputes",
+            target_id=listing_id,
+        ))
+    elif "buy" in text or "checkout" in text or "pay" in text:
+        response = "Ready to purchase? I can take you to checkout for the selected listing and remind you to verify seller details first."
+        actions.append(AssistantAction(
+            action_type="buy_now",
+            title="Go to Checkout",
+            description="Proceed to secure checkout for this listing.",
+            target_route="checkout",
+            target_id=listing_id,
+        ))
+    elif "sell" in text or "listing" in text:
+        response = "For faster sales: include clear photos, full service history, and accurate mileage. I can also review your listing quality."
+        actions.append(AssistantAction(
+            action_type="manage_listing",
+            title="View My Listings",
+            description="Open your listings to edit details or publish new cars.",
+            target_route="mylistings",
+            target_id=listing_id,
+        ))
+    else:
+        response = "I can help with buying, selling, checkout, disputes, and upgrades. Ask me what you want to do next and I will suggest the best in-app step."
+        actions.extend([
+            AssistantAction(
+                action_type="message_seller",
+                title="Message Seller",
+                description="Open messaging to ask questions before buying.",
+                target_route="messages",
+                target_id=listing_id,
+            ),
+            AssistantAction(
+                action_type="upgrade",
+                title="Upgrade Plan",
+                description="Unlock premium AI workflows and higher listing limits.",
+                target_route="dashboard",
+            ),
+        ])
+
+    tools.append(AssistantToolOutput(
+        tool_name="assistant_router",
+        success=True,
+        payload={"intent": "rule_based", "listing_id": listing_id}
+    ))
+    return response, actions, tools
+
+
+@app.post("/assistant/query", response_model=AssistantQueryResponse)
+async def assistant_query(payload: AssistantQueryRequest, user=Depends(get_current_user)):
+    thread_id = _get_or_create_assistant_thread(user.id, payload.thread_id, payload.message)
+    current_tier = await _get_user_tier(user.id)
+    entitlement = AssistantEntitlementGate(requires_upgrade=False, current_tier=current_tier)
+
+    _save_assistant_message(thread_id, user.id, AssistantMessageRole.USER.value, payload.message, payload.context)
+    response_text, actions, tools = _build_assistant_query_response(payload.message, payload.listing_id)
+
+    assistant_msg_id = _save_assistant_message(
+        thread_id,
+        user.id,
+        AssistantMessageRole.ASSISTANT.value,
+        response_text,
+        {"actions": [a.dict() for a in actions], "tools": [t.dict() for t in tools]}
+    )
+
+    for action in actions:
+        _save_assistant_action(thread_id, user.id, action, {"trigger": "assistant_query"})
+
+    _touch_assistant_thread(thread_id)
+
+    return AssistantQueryResponse(
+        thread_id=thread_id,
+        message_id=assistant_msg_id,
+        response=response_text,
+        actions=actions,
+        tools=tools,
+        entitlement=entitlement,
+    )
+
+
+@app.post("/assistant/suggest-next-step", response_model=AssistantSuggestNextStepResponse)
+async def assistant_suggest_next_step(payload: AssistantSuggestNextStepRequest, user=Depends(get_current_user)):
+    thread_id = _get_or_create_assistant_thread(user.id, payload.thread_id, payload.goal)
+    current_tier = await _get_user_tier(user.id)
+
+    _save_assistant_message(thread_id, user.id, AssistantMessageRole.USER.value, payload.goal, payload.context)
+
+    if current_tier not in PREMIUM_ASSISTANT_TIERS:
+        gate = _assistant_upgrade_gate(current_tier)
+        message = "Upgrade to Premium to receive personalized next-step recommendations based on your account activity."
+        msg_id = _save_assistant_message(thread_id, user.id, AssistantMessageRole.ASSISTANT.value, message, gate.dict())
+        _touch_assistant_thread(thread_id)
+        return AssistantSuggestNextStepResponse(
+            thread_id=thread_id,
+            message_id=msg_id,
+            suggested_action=AssistantAction(
+                action_type="upgrade",
+                title="Upgrade to Premium",
+                description="Unlock intelligent next-step suggestions.",
+                target_route="dashboard",
+            ),
+            reason=message,
+            tools=[AssistantToolOutput(tool_name="entitlement_check", payload={"passed": False})],
+            entitlement=gate,
+        )
+
+    goal = payload.goal.lower()
+    if "buy" in goal or "offer" in goal:
+        action = AssistantAction(
+            action_type="message_seller",
+            title="Message Seller",
+            description="Confirm history, paperwork, and inspection before paying.",
+            target_route="messages",
+            target_id=payload.listing_id,
+        )
+        reason = "Messaging the seller first usually reduces disputes and improves purchase confidence."
+    elif "sell" in goal or "faster" in goal:
+        action = AssistantAction(
+            action_type="boost_listing",
+            title="Upgrade Listing Plan",
+            description="Move higher in search and reach more buyers.",
+            target_route="dashboard",
+            target_id=payload.listing_id,
+        )
+        reason = "Upgrading your plan gives visibility boosts and premium buyer trust signals."
+    else:
+        action = AssistantAction(
+            action_type="buy_now",
+            title="Buy Now",
+            description="Proceed to checkout when you are satisfied with listing details.",
+            target_route="checkout",
+            target_id=payload.listing_id,
+        )
+        reason = "Checkout is the fastest path once due diligence is complete."
+
+    msg_id = _save_assistant_message(thread_id, user.id, AssistantMessageRole.ASSISTANT.value, reason, {"action": action.dict()})
+    _save_assistant_action(thread_id, user.id, action, {"trigger": "assistant_suggest_next_step"})
+    _touch_assistant_thread(thread_id)
+
+    return AssistantSuggestNextStepResponse(
+        thread_id=thread_id,
+        message_id=msg_id,
+        suggested_action=action,
+        reason=reason,
+        tools=[AssistantToolOutput(tool_name="next_step_planner", payload={"goal": payload.goal})],
+        entitlement=AssistantEntitlementGate(requires_upgrade=False, current_tier=current_tier),
+    )
+
+
+@app.post("/assistant/listing-review", response_model=AssistantListingReviewResponse)
+async def assistant_listing_review(payload: AssistantListingReviewRequest, user=Depends(get_current_user)):
+    thread_id = _get_or_create_assistant_thread(user.id, payload.thread_id, f"Listing review: {payload.brand} {payload.model}")
+    current_tier = await _get_user_tier(user.id)
+
+    review_prompt = f"Review listing {payload.brand} {payload.model} {payload.year} at P{payload.price}."
+    _save_assistant_message(thread_id, user.id, AssistantMessageRole.USER.value, review_prompt, payload.dict())
+
+    if current_tier not in PREMIUM_ASSISTANT_TIERS:
+        gate = _assistant_upgrade_gate(current_tier)
+        summary = "AI listing reviews are Premium-only. Upgrade to receive pricing and conversion optimization guidance."
+        msg_id = _save_assistant_message(thread_id, user.id, AssistantMessageRole.ASSISTANT.value, summary, gate.dict())
+        _touch_assistant_thread(thread_id)
+        return AssistantListingReviewResponse(
+            thread_id=thread_id,
+            message_id=msg_id,
+            score=0,
+            summary=summary,
+            suggestions=["Upgrade to Premium to unlock listing quality analysis."],
+            tools=[AssistantToolOutput(tool_name="entitlement_check", payload={"passed": False})],
+            entitlement=gate,
+        )
+
+    score = 70
+    suggestions = []
+    if payload.notes and len(payload.notes) >= 80:
+        score += 10
+    else:
+        suggestions.append("Add a richer description (service history, ownership, and known issues).")
+
+    if payload.mileage < 120000:
+        score += 10
+    else:
+        suggestions.append("If mileage is high, justify price with maintenance records and recent repairs.")
+
+    if payload.price <= 0:
+        score = max(0, score - 30)
+        suggestions.append("Set a realistic asking price for better visibility.")
+
+    score = max(0, min(score, 100))
+    if not suggestions:
+        suggestions = ["Great listing. Consider upgrading your tier to boost exposure and trust signals."]
+
+    summary = f"Your listing quality score is {score}/100. Improve detail clarity and pricing confidence to increase buyer conversion."
+    msg_id = _save_assistant_message(
+        thread_id,
+        user.id,
+        AssistantMessageRole.ASSISTANT.value,
+        summary,
+        {"score": score, "suggestions": suggestions}
+    )
+    _save_assistant_action(
+        thread_id,
+        user.id,
+        AssistantAction(
+            action_type="edit_listing",
+            title="Edit Listing",
+            description="Apply the assistant suggestions to improve conversion.",
+            target_route="mylistings",
+            target_id=payload.listing_id,
+        ),
+        {"trigger": "assistant_listing_review", "score": score}
+    )
+    _touch_assistant_thread(thread_id)
+
+    return AssistantListingReviewResponse(
+        thread_id=thread_id,
+        message_id=msg_id,
+        score=score,
+        summary=summary,
+        suggestions=suggestions,
+        tools=[AssistantToolOutput(tool_name="listing_quality", payload={"score": score})],
+        entitlement=AssistantEntitlementGate(requires_upgrade=False, current_tier=current_tier),
+    )
 
 
 # ========================================
