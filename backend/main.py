@@ -1044,12 +1044,94 @@ def _touch_assistant_thread(thread_id: str):
 
 
 def _build_assistant_query_response(message: str, listing_id: Optional[str]) -> Tuple[str, List[AssistantAction], List[AssistantToolOutput]]:
-    text = message.lower()
+    """Rule-based assistant response engine for demo use before LLM/API integration."""
+    text = message.lower().strip()
     actions: List[AssistantAction] = []
     tools: List[AssistantToolOutput] = []
 
-    if "dispute" in text or "refund" in text or "scam" in text:
-        response = "I can help you open a dispute. Gather screenshots, proof of payment, and listing details, then submit a dispute in-app."
+    def has_any(*keywords: str) -> bool:
+        return any(k in text for k in keywords)
+
+    if has_any("hi", "hello", "hey", "good morning", "good afternoon"):
+        response = (
+            "Hi! I'm the PrimeDrive assistant. I can help with buying tips, selling tips, subscription plans, "
+            "checkout guidance, disputes, and next steps."
+        )
+        actions.extend([
+            AssistantAction(
+                action_type="browse_listings",
+                title="Browse Listings",
+                description="See active cars for sale or rent.",
+                target_route="buy",
+            ),
+            AssistantAction(
+                action_type="view_plans",
+                title="View Plans",
+                description="Compare Free, Basic, Standard, and Premium tiers.",
+                target_route="dashboard",
+            ),
+        ])
+    elif has_any("price", "pricing", "plan", "tier", "subscription"):
+        response = (
+            "Current plans are: Free (P0, 1 listing), Basic (P25/month, 3 listings), "
+            "Standard (P60/month, 10 listings), and Premium (P100/month, unlimited listings)."
+        )
+        actions.append(AssistantAction(
+            action_type="upgrade",
+            title="Manage Subscription",
+            description="Open dashboard to review or change your plan.",
+            target_route="dashboard",
+        ))
+    elif has_any("buy", "checkout", "pay", "purchase"):
+        response = (
+            "Before checkout, verify the seller profile, mileage, service history, and vehicle documents. "
+            "When ready, continue to checkout for secure payment flow."
+        )
+        actions.extend([
+            AssistantAction(
+                action_type="buy_now",
+                title="Go to Checkout",
+                description="Proceed to secure checkout for this listing.",
+                target_route="checkout",
+                target_id=listing_id,
+            ),
+            AssistantAction(
+                action_type="message_seller",
+                title="Message Seller",
+                description="Ask for documents, inspection history, and final condition details.",
+                target_route="messages",
+                target_id=listing_id,
+            ),
+        ])
+    elif has_any("sell", "listing", "post car"):
+        response = (
+            "For faster sales, add at least 6 clear photos, mention service history, be transparent about condition, "
+            "and set a realistic price for your market."
+        )
+        actions.append(AssistantAction(
+            action_type="manage_listing",
+            title="View My Listings",
+            description="Open your listings to add or edit a car.",
+            target_route="mylistings",
+            target_id=listing_id,
+        ))
+    elif has_any("rent", "rental", "daily rate"):
+        response = (
+            "For rentals, include daily rate, seats, fuel policy, mileage limits, and pickup location. "
+            "Clear rental terms usually improve booking confidence."
+        )
+        actions.append(AssistantAction(
+            action_type="manage_listing",
+            title="Edit Rental Listing",
+            description="Update rental details and availability.",
+            target_route="mylistings",
+            target_id=listing_id,
+        ))
+    elif has_any("dispute", "refund", "scam", "problem", "issue"):
+        response = (
+            "I can help you open a dispute. Keep screenshots, payment proof, seller chat, and listing details ready "
+            "before submitting your case."
+        )
         actions.append(AssistantAction(
             action_type="open_dispute",
             title="Open Dispute",
@@ -1057,26 +1139,20 @@ def _build_assistant_query_response(message: str, listing_id: Optional[str]) -> 
             target_route="disputes",
             target_id=listing_id,
         ))
-    elif "buy" in text or "checkout" in text or "pay" in text:
-        response = "Ready to purchase? I can take you to checkout for the selected listing and remind you to verify seller details first."
+    elif has_any("contact", "support", "help"):
+        response = "For support, use in-app messaging from the listing page so your context is attached automatically."
         actions.append(AssistantAction(
-            action_type="buy_now",
-            title="Go to Checkout",
-            description="Proceed to secure checkout for this listing.",
-            target_route="checkout",
-            target_id=listing_id,
-        ))
-    elif "sell" in text or "listing" in text:
-        response = "For faster sales: include clear photos, full service history, and accurate mileage. I can also review your listing quality."
-        actions.append(AssistantAction(
-            action_type="manage_listing",
-            title="View My Listings",
-            description="Open your listings to edit details or publish new cars.",
-            target_route="mylistings",
+            action_type="message_support",
+            title="Open Messages",
+            description="Contact seller or support with listing context.",
+            target_route="messages",
             target_id=listing_id,
         ))
     else:
-        response = "I can help with buying, selling, checkout, disputes, and upgrades. Ask me what you want to do next and I will suggest the best in-app step."
+        response = (
+            "I can help with buying, selling, renting, checkout, disputes, and subscription plans. "
+            "Try asking: 'How do I buy safely?', 'What plan should I choose?', or 'How can I sell faster?'."
+        )
         actions.extend([
             AssistantAction(
                 action_type="message_seller",
@@ -1096,7 +1172,7 @@ def _build_assistant_query_response(message: str, listing_id: Optional[str]) -> 
     tools.append(AssistantToolOutput(
         tool_name="assistant_router",
         success=True,
-        payload={"intent": "rule_based", "listing_id": listing_id}
+        payload={"intent": "rule_based_demo", "listing_id": listing_id}
     ))
     return response, actions, tools
 
