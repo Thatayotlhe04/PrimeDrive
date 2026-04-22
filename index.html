@@ -149,6 +149,9 @@
             --accent-hover: #2d49db;
             --accent-light: #eef1ff;
             --accent-subtle: rgba(59, 91, 255, 0.08);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-stroke: rgba(255, 255, 255, 0.38);
+            --glass-glow: rgba(59, 91, 255, 0.2);
 
             --success: #22c55e;
             --success-bg: #f0fdf4;
@@ -202,6 +205,9 @@
             --accent-hover: #7b95ff;
             --accent-light: rgba(91, 123, 255, 0.12);
             --accent-subtle: rgba(91, 123, 255, 0.06);
+            --glass-bg: rgba(26, 28, 40, 0.62);
+            --glass-stroke: rgba(255, 255, 255, 0.08);
+            --glass-glow: rgba(91, 123, 255, 0.25);
 
             --shadow-xs: 0 1px 2px rgba(0,0,0,0.2);
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
@@ -223,7 +229,10 @@
         }
         body {
             font-family: var(--font-body);
-            background: var(--bg-primary);
+            background:
+                radial-gradient(circle at 10% -10%, rgba(91, 123, 255, 0.16), transparent 34%),
+                radial-gradient(circle at 90% 0%, rgba(56, 189, 248, 0.12), transparent 32%),
+                var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
@@ -395,7 +404,7 @@
             background: rgba(255,255,255,0.82);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border-bottom: 1px solid transparent;
+            border-bottom: 1px solid var(--glass-stroke);
             transition: all var(--transition);
         }
         [data-theme="dark"] .nav {
@@ -511,7 +520,10 @@
             position: fixed;
             top: var(--nav-height);
             left: 0; right: 0; bottom: 0;
-            background: var(--bg-primary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-left: 1px solid var(--glass-stroke);
             z-index: 999;
             display: flex;
             flex-direction: column;
@@ -572,7 +584,8 @@
             top: 0; left: 0; right: 0; bottom: 0;
             background:
                 radial-gradient(ellipse 60% 50% at 65% 20%, var(--accent-subtle) 0%, transparent 70%),
-                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(59,91,255,0.03) 0%, transparent 70%);
+                radial-gradient(ellipse 40% 40% at 20% 80%, rgba(59,91,255,0.06) 0%, transparent 70%),
+                radial-gradient(circle at 88% 10%, rgba(86,129,255,0.2) 0, transparent 25%);
             pointer-events: none;
         }
         .hero__grid {
@@ -636,12 +649,17 @@
             position: relative;
         }
         .hero__car-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-default);
+            background: linear-gradient(150deg, rgba(255,255,255,0.72), rgba(255,255,255,0.38));
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-xl);
             overflow: hidden;
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 18px 45px rgba(16, 24, 40, 0.18), inset 0 1px 0 rgba(255,255,255,0.5);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
             transition: all var(--transition);
+        }
+        [data-theme="dark"] .hero__car-card {
+            background: linear-gradient(155deg, rgba(37, 44, 65, 0.78), rgba(22, 25, 36, 0.55));
         }
         .hero__car-image {
             width: 100%;
@@ -707,8 +725,8 @@
             position: absolute;
             bottom: -20px;
             right: -16px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-default);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-lg);
             padding: 16px 20px;
             box-shadow: var(--shadow-md);
@@ -716,6 +734,8 @@
             align-items: center;
             gap: 12px;
             animation: floatCard 4s ease-in-out infinite;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
         }
         @keyframes floatCard {
             0%, 100% { transform: translateY(0); }
@@ -835,11 +855,13 @@
             display: grid;
             grid-template-columns: 340px 1fr;
             gap: 0;
-            border: 1px solid var(--border-default);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-lg);
             overflow: hidden;
             min-height: 520px;
-            background: var(--bg-primary);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
         .msg-list {
             border-right: 1px solid var(--border-default);
@@ -891,6 +913,19 @@
         .msg-chat__header {
             padding: 14px 20px; border-bottom: 1px solid var(--border-default);
             display: flex; align-items: center; gap: 12px;
+        }
+        .msg-chat__mode {
+            margin-left: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(91,123,255,0.14);
+            border: 1px solid rgba(91,123,255,0.3);
+            color: var(--accent);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: var(--radius-full);
         }
         .msg-chat__header-name { font-weight: 700; font-size: 0.95rem; }
         .msg-chat__header-listing { font-size: 0.78rem; color: var(--text-tertiary); }
@@ -950,10 +985,13 @@
         /* CHECKOUT                      */
         /* ============================= */
         .checkout-card {
-            background: var(--bg-primary);
-            border: 1px solid var(--border-default);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-lg);
             overflow: hidden;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
         }
         .checkout-card__car {
             display: flex; gap: 16px; padding: 20px;
@@ -1141,20 +1179,23 @@
             gap: 20px;
         }
         .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-default);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-lg);
             padding: 36px 28px;
             transition: all var(--transition);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.36);
         }
         .feature-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-card-hover);
-            border-color: var(--accent);
+            box-shadow: 0 24px 40px -24px var(--glass-glow), 0 18px 35px rgba(16, 24, 40, 0.18);
+            border-color: rgba(91, 123, 255, 0.45);
         }
         .feature-card__icon {
             width: 52px; height: 52px;
-            background: var(--accent-light);
+            background: linear-gradient(145deg, rgba(91,123,255,0.22), rgba(59,91,255,0.1));
             border-radius: var(--radius-md);
             display: flex;
             align-items: center;
@@ -1162,6 +1203,8 @@
             font-size: 1.25rem;
             color: var(--accent);
             margin-bottom: 20px;
+            border: 1px solid rgba(91, 123, 255, 0.25);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.45);
         }
         .feature-card__title {
             font-family: var(--font-display);
@@ -1249,16 +1292,19 @@
             gap: 20px;
         }
         .car-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-default);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-lg);
             overflow: hidden;
             transition: all var(--transition);
             position: relative;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.28);
         }
         .car-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-card-hover);
+            box-shadow: 0 24px 40px -28px rgba(59, 91, 255, 0.55), var(--shadow-card-hover);
         }
         .car-card__image {
             width: 100%;
@@ -2448,10 +2494,12 @@
         .listing-detail__sidebar {
             position: sticky;
             top: calc(var(--nav-height) + 24px);
-            background: var(--bg-card);
-            border: 1px solid var(--border-default);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-stroke);
             border-radius: var(--radius-xl);
             padding: 28px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
         .listing-detail__sidebar h3 {
             font-family: var(--font-display);
@@ -2967,16 +3015,12 @@
                     </div>
                     <div class="hero__featured">
                         <div class="hero__car-card">
-                            <div class="hero__car-image" style="height:400px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:16px;">
-                                <div style="width:80px; height:80px; background:var(--accent-light); border-radius:var(--radius-md); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--accent);">
-                                    <i class="bi bi-car-front"></i>
-                                </div>
-                                <div style="text-align:center; padding:0 24px;">
-                                    <div class="hero__car-name" style="margin-bottom:12px;">Looking for your next car?</div>
-                                    <p class="body-sm" style="margin-bottom:20px;">We source quality vehicles locally in Botswana. Browse the marketplace or tell us what you need.</p>
-                                    <button onclick="navigate('buy')" class="btn btn--primary btn--sm">
-                                        <i class="bi bi-search"></i> Browse Cars
-                                    </button>
+                            <div class="hero__car-image" style="height:400px;">
+                                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80&auto=format&fit=crop" alt="Featured demo listing">
+                                <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(4,10,30,0.12) 0%, rgba(4,10,30,0.7) 100%);"></div>
+                                <div style="position:absolute;left:22px;right:22px;bottom:22px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px;padding:14px 16px;">
+                                    <div class="hero__car-name" style="margin-bottom:6px;color:#fff;">Demo Listing • BMW 320i M Sport</div>
+                                    <p class="body-sm" style="margin:0;color:rgba(255,255,255,0.86);">Fresh, glassy preview cards are now enabled for live and demo listings.</p>
                                 </div>
                             </div>
                         </div>
@@ -3030,32 +3074,32 @@
                 </div>
                 <div class="features__grid">
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-shield-check"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-shield-lock"></i></div>
                         <div class="feature-card__title">Scam-Free Deals</div>
                         <div class="feature-card__desc">Every vehicle is verified before listing. We protect you from fraud so you buy with total confidence.</div>
                     </div>
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-lightning-charge"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-rocket-takeoff"></i></div>
                         <div class="feature-card__title">Fast Turnaround</div>
                         <div class="feature-card__desc">From inquiry to keys in hand — we close deals fast so you're on the road sooner, not later.</div>
                     </div>
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-chat-dots"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-chat-square-text"></i></div>
                         <div class="feature-card__title">In-App Messaging</div>
                         <div class="feature-card__desc">Message sellers directly inside PrimeDrive. Quick responses and transparent communication, all in one place.</div>
                     </div>
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-key"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-calendar2-check"></i></div>
                         <div class="feature-card__title">Rentals Available</div>
                         <div class="feature-card__desc">Need a car temporarily? Browse our rental fleet for daily, weekly, or monthly bookings across Botswana.</div>
                     </div>
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-globe-americas"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-binoculars"></i></div>
                         <div class="feature-card__title">Car Sourcing</div>
                         <div class="feature-card__desc">Can't find what you're looking for? We source quality vehicles locally in Botswana from trusted sellers.</div>
                     </div>
                     <div class="feature-card reveal">
-                        <div class="feature-card__icon"><i class="bi bi-geo-alt"></i></div>
+                        <div class="feature-card__icon"><i class="bi bi-compass"></i></div>
                         <div class="feature-card__title">Local Expertise</div>
                         <div class="feature-card__desc">Based in Gaborone, we understand the Botswana market and connect buyers and sellers nationwide.</div>
                     </div>
@@ -4191,8 +4235,8 @@
             <div class="container">
                 <div class="listings__header">
                     <div class="listings__header-text">
-                        <div class="label"><i class="bi bi-stars"></i> AI Assistant</div>
-                        <h1 class="heading-lg">Assistant Workspace</h1>
+                        <div class="label"><i class="bi bi-chat-square-text"></i> In-App Communication</div>
+                        <h1 class="heading-lg">Messages &amp; Assistant</h1>
                         <div class="listings__count" id="msgCount">Loading...</div>
                     </div>
                 </div>
@@ -4201,6 +4245,8 @@
                     <div class="msg-list" id="assistantQuickActions">
                         <div style="padding:16px;border-bottom:1px solid var(--border-light);font-weight:700;">Quick Actions</div>
                         <div style="padding:14px;display:grid;gap:10px;">
+                            <button class="btn btn--ghost btn--full" onclick="openDemoSellerChat()"><i class="bi bi-person-lines-fill"></i> Demo Seller Chat</button>
+                            <button class="btn btn--ghost btn--full" onclick="startDemoTransaction()"><i class="bi bi-bag-heart"></i> Demo Transaction</button>
                             <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to buy this car safely. What should I do first?')"><i class="bi bi-bag-check"></i> Buyer Help</button>
                             <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to sell faster. Suggest my next best action.')"><i class="bi bi-tag"></i> Seller Help</button>
                             <button class="btn btn--ghost btn--full" onclick="requestNextStep()"><i class="bi bi-signpost"></i> Suggest Next Step</button>
@@ -4216,11 +4262,12 @@
                                 <div class="msg-chat__header-name">PrimeDrive AI Assistant</div>
                                 <div class="msg-chat__header-listing">Buyer/Seller guidance with in-app actions</div>
                             </div>
+                            <div class="msg-chat__mode" id="msgModeBadge">Assistant</div>
                         </div>
                         <div class="msg-chat__body" id="assistantChatBody"></div>
                         <div class="msg-chat__input">
-                            <input type="text" id="assistantInput" placeholder="Ask about buying, selling, checkout, disputes, or upgrades..." onkeydown="if(event.key==='Enter')sendAssistantQuery()" maxlength="2000" autocomplete="off">
-                            <button onclick="sendAssistantQuery()"><i class="bi bi-send"></i></button>
+                            <input type="text" id="assistantInput" placeholder="Ask about buying, selling, checkout, disputes, or upgrades..." onkeydown="if(event.key==='Enter')sendChatMessage()" maxlength="2000" autocomplete="off">
+                            <button onclick="sendChatMessage()"><i class="bi bi-send"></i></button>
                         </div>
                     </div>
                 </div>
@@ -4378,6 +4425,54 @@
         rental5:    "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=480&q=75",
         rental6:    "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=480&q=75",
     };
+    const demoPalette = [
+        ['#7aa2ff', '#3b5bff'],
+        ['#83d9ff', '#3f7cff'],
+        ['#6ee7d9', '#3b82f6'],
+        ['#a78bfa', '#4f46e5'],
+        ['#60a5fa', '#2563eb'],
+    ];
+    const demoCarPhotoPool = Object.values(carImages);
+    function createDemoListingImage(title = 'PrimeDrive Demo', subtitle = 'Glassy Listing Preview', idx = 0) {
+        const [a, b] = demoPalette[idx % demoPalette.length];
+        const safeTitle = String(title).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        const safeSubtitle = String(subtitle).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+        const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'>
+          <defs>
+            <linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>
+              <stop offset='0%' stop-color='${a}'/>
+              <stop offset='100%' stop-color='${b}'/>
+            </linearGradient>
+            <radialGradient id='r' cx='75%' cy='15%' r='35%'>
+              <stop offset='0%' stop-color='rgba(255,255,255,0.75)'/>
+              <stop offset='100%' stop-color='rgba(255,255,255,0)'/>
+            </radialGradient>
+          </defs>
+          <rect width='1200' height='700' fill='url(#g)'/>
+          <rect width='1200' height='700' fill='url(#r)'/>
+          <g fill='none' stroke='rgba(255,255,255,0.32)' stroke-width='2'>
+            <circle cx='150' cy='120' r='70'/><circle cx='980' cy='210' r='120'/><circle cx='860' cy='540' r='190'/>
+          </g>
+          <rect x='68' y='420' width='1064' height='220' rx='24' fill='rgba(255,255,255,0.22)' stroke='rgba(255,255,255,0.4)'/>
+          <text x='110' y='500' fill='white' font-size='58' font-family='Outfit, Arial, sans-serif' font-weight='700'>${safeTitle}</text>
+          <text x='110' y='555' fill='rgba(255,255,255,0.9)' font-size='30' font-family='Plus Jakarta Sans, Arial, sans-serif'>${safeSubtitle}</text>
+        </svg>`;
+        return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+    }
+    function getDemoImageForCar(car = {}) {
+        const make = car.make || car.brand || 'PrimeDrive';
+        const model = car.model || 'Listing';
+        const idx = `${make}${model}`.length % demoCarPhotoPool.length;
+        return demoCarPhotoPool[idx] || createDemoListingImage(`${make} ${model}`, 'Demo vehicle image', idx);
+    }
+    const demoListings = [
+        { id: 'demo-1', make: 'Toyota', model: 'Hilux GD-6', year: 2021, price: 319000, mileage: 64000, transmission: 'Auto', location: 'Gaborone', status: 'verified', seller_type: 'dealer' },
+        { id: 'demo-2', make: 'BMW', model: '320i', year: 2020, price: 274000, mileage: 52000, transmission: 'Auto', location: 'Francistown', status: 'verified', seller_type: 'individual' },
+        { id: 'demo-3', make: 'Mercedes-Benz', model: 'C200', year: 2019, price: 289000, mileage: 76000, transmission: 'Auto', location: 'Mogoditshane', status: 'unverified', seller_type: 'dealer' },
+        { id: 'demo-4', make: 'Volkswagen', model: 'Polo GTI', year: 2022, price: 258000, mileage: 39000, transmission: 'Auto', location: 'Lobatse', status: 'verified', seller_type: 'individual' },
+        { id: 'demo-5', make: 'Ford', model: 'Ranger XLT', year: 2021, price: 345000, mileage: 47000, transmission: 'Auto', location: 'Maun', status: 'verified', seller_type: 'dealer' },
+        { id: 'demo-6', make: 'Hyundai', model: 'Tucson', year: 2023, price: 332000, mileage: 28000, transmission: 'Auto', location: 'Selebi-Phikwe', status: 'verified', seller_type: 'dealer' }
+    ].map((c, idx) => ({ ...c, main_photo: getDemoImageForCar(c, idx) }));
 
     let marketplaceListings = []; // Loaded from Supabase
     let currentListingDetail = null; // Currently viewed listing
@@ -4470,7 +4565,7 @@
         const location = car.location || '';
         const status = car.status || 'unverified';
         const sellerType = car.seller_type || 'individual';
-        const mainPhoto = car.main_photo || car.image || '';
+        const mainPhoto = car.main_photo || car.image || getDemoImageForCar(car);
         // Seller profile info (from joined query)
         const sellerProfile = car.profiles || null;
         const sellerName = sellerProfile ? (sellerProfile.full_name || sellerProfile.email || 'Seller') : '';
@@ -4481,9 +4576,7 @@
         const sellerBadge = sellerType === 'dealer'
             ? '<span class="car-card__spec"><i class="bi bi-building"></i> Dealership</span>'
             : '<span class="car-card__spec"><i class="bi bi-person"></i> Individual</span>';
-        const imgHTML = mainPhoto
-            ? `<img src="${mainPhoto}" alt="${make} ${model}" loading="lazy">`
-            : `<div style="height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);"><i class="bi bi-car-front" style="font-size:3rem;color:var(--text-tertiary);"></i></div>`;
+        const imgHTML = `<img src="${mainPhoto}" alt="${make} ${model}" loading="lazy">`;
 
         // Seller footer
         const sellerHTML = sellerName ? `
@@ -4495,8 +4588,13 @@
                 </div>
             </div>` : '';
 
+        const openAction = id
+            ? (String(id).startsWith('demo-')
+                ? `onclick="openDemoListingDetail('${id}')" style="cursor:pointer;"`
+                : `onclick="openListingDetail('${id}')" style="cursor:pointer;"`)
+            : '';
         return `
-        <div class="car-card reveal" onclick="openListingDetail('${id}')" style="cursor:pointer;">
+        <div class="car-card reveal" ${openAction}>
             <div class="car-card__image">
                 ${imgHTML}
                 ${statusBadge}
@@ -4816,9 +4914,12 @@
             marketplaceListings = (listings || []).map(l => {
                 const photos = l.listing_photos || [];
                 photos.sort((a, b) => a.display_order - b.display_order);
-                l.main_photo = photos.length ? photos[0].photo_url : '';
+                l.main_photo = photos.length ? photos[0].photo_url : getDemoImageForCar(l);
                 return l;
             });
+            if (marketplaceListings.length === 0) {
+                marketplaceListings = demoListings;
+            }
 
             renderBuyCars(marketplaceListings);
 
@@ -4838,8 +4939,9 @@
 
         } catch (err) {
             console.error('Marketplace load error:', err);
-            grid.innerHTML = noResultsHTML();
-            countEl.textContent = 'Error loading listings';
+            marketplaceListings = demoListings;
+            renderBuyCars(marketplaceListings);
+            countEl.textContent = `Showing ${marketplaceListings.length} demo cars`;
         }
     }
 
@@ -4870,13 +4972,9 @@
             if (error) throw error;
 
             if (!listings || listings.length === 0) {
-                grid.innerHTML = `<div class="featured-listings__empty">
-                    <i class="bi bi-car-front"></i>
-                    <p>No listings yet. Be the first to list your car on PrimeDrive!</p>
-                    <button class="btn btn--primary btn--sm" onclick="navigate('sell')" style="margin-top:12px;">
-                        <i class="bi bi-plus-circle"></i> Create a Listing
-                    </button>
-                </div>`;
+                grid.innerHTML = demoListings.slice(0, 6).map(buildSaleCard).join('');
+                featuredLoaded = true;
+                initRevealObserver();
                 return;
             }
 
@@ -4884,20 +4982,18 @@
             const featured = listings.map(l => {
                 const photos = l.listing_photos || [];
                 photos.sort((a, b) => a.display_order - b.display_order);
-                l.main_photo = photos.length ? photos[0].photo_url : '';
+                l.main_photo = photos.length ? photos[0].photo_url : getDemoImageForCar(l);
                 return l;
             });
-
-            grid.innerHTML = featured.map(buildSaleCard).join('');
+            grid.innerHTML = (featured.length ? featured : demoListings.slice(0, 6)).map(buildSaleCard).join('');
             featuredLoaded = true;
             initRevealObserver();
 
         } catch (err) {
             console.error('Featured listings error:', err);
-            grid.innerHTML = `<div class="featured-listings__empty">
-                <i class="bi bi-exclamation-triangle"></i>
-                <p>Could not load listings. Pull down to refresh.</p>
-            </div>`;
+            grid.innerHTML = demoListings.slice(0, 6).map(buildSaleCard).join('');
+            featuredLoaded = true;
+            initRevealObserver();
         }
     }
 
@@ -5077,6 +5173,61 @@
 
     async function requestVerifiedDeal(listingId) {
         return initCheckout(listingId);
+    }
+
+    function openDemoListingDetail(id) {
+        const listing = demoListings.find(l => l.id === id) || demoListings[0];
+        if (!listing) return;
+        currentListingDetail = listing;
+        navigate('listing');
+        const container = document.getElementById('listingDetailContent');
+        if (!container) return;
+        const price = Number(listing.price || 0);
+        const commissionRate = price < 100000 ? 0.05 : 0.065;
+        const sellerNet = price - (price * commissionRate);
+        container.innerHTML = `
+            <div class="listing-detail__gallery">
+                <div class="listing-detail__main-image">
+                    <img src="${listing.main_photo || getDemoImageForCar(listing)}" alt="${listing.make} ${listing.model}" id="mainPhoto">
+                    <div class="listing-detail__type-badge listing-detail__type-badge--sale">Demo Listing</div>
+                </div>
+            </div>
+            <div class="listing-detail__content">
+                <div class="listing-detail__info">
+                    <div class="listing-detail__badges">
+                        <span class="listing-detail__badge listing-detail__badge--verified"><i class="bi bi-patch-check-fill"></i> Demo Verified</span>
+                        <span class="listing-detail__badge listing-detail__badge--dealer"><i class="bi bi-building"></i> Demo Seller</span>
+                    </div>
+                    <h1 class="listing-detail__title">${listing.make} ${listing.model} ${listing.year}</h1>
+                    <div class="listing-detail__price">${formatPrice(price)}</div>
+                    <div class="listing-detail__specs">
+                        <div class="listing-detail__spec"><div class="listing-detail__spec-label">Year</div><div class="listing-detail__spec-value">${listing.year}</div></div>
+                        <div class="listing-detail__spec"><div class="listing-detail__spec-label">Mileage</div><div class="listing-detail__spec-value">${Number(listing.mileage || 0).toLocaleString()} km</div></div>
+                        <div class="listing-detail__spec"><div class="listing-detail__spec-label">Transmission</div><div class="listing-detail__spec-value">${listing.transmission || 'Auto'}</div></div>
+                        <div class="listing-detail__spec"><div class="listing-detail__spec-label">Location</div><div class="listing-detail__spec-value">${listing.location || 'Gaborone'}</div></div>
+                    </div>
+                    <div class="listing-detail__desc">This is a demo car listing with full in-app messaging and pseudo transaction flow for presentations.</div>
+                </div>
+                <div class="listing-detail__sidebar">
+                    <div class="listing-detail__seller-info">
+                        <div class="car-card__seller-avatar" style="width:36px;height:36px;font-size:0.9rem;">D</div>
+                        <div>
+                            <div style="font-weight:700;font-size:0.95rem;">Demo Seller Team</div>
+                            <div style="font-size:0.78rem;color:var(--text-tertiary);">Always online for demos</div>
+                        </div>
+                    </div>
+                    <h3>Run the full demo flow</h3>
+                    <button class="btn btn--primary" onclick="openDemoSellerChat('${listing.id}')"><i class="bi bi-chat-dots"></i> Message Seller (In-App)</button>
+                    <button class="btn btn--accent" onclick="startDemoTransaction('${listing.id}')"><i class="bi bi-bag-check"></i> Start Pseudo Transaction</button>
+                    <div class="listing-detail__deposit-info">
+                        <strong>Demo transaction policy</strong><br>
+                        Platform commission: <strong>${commissionRate * 100}%</strong><br>
+                        Seller receives: <strong>${formatPrice(sellerNet)}</strong><br><br>
+                        This demo path is local-only and can be removed after presentation.
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
 
@@ -5550,27 +5701,62 @@
        AI ASSISTANT PANEL
        =========================================== */
     let assistantThreadId = null;
+    let activeMessageMode = 'seller_demo';
+    let demoConversation = [];
+    let demoConversationListingId = null;
     const API_BASE = localStorage.getItem('pd_api_base') || 'http://localhost:8000';
 
     async function startConversation(listingId, sellerId) {
-        if (!currentUser) { showLogin(); return; }
+        if (String(listingId || '').startsWith('demo-') || !currentUser) {
+            openDemoSellerChat(listingId);
+            return;
+        }
         navigate('messages');
-        setTimeout(() => {
-            const input = document.getElementById('assistantInput');
-            if (input) {
-                input.value = `I am interested in listing ${listingId}. What should I ask the seller first?`;
-                input.focus();
-            }
-        }, 250);
+        activeMessageMode = 'assistant';
+        switchMessageMode('assistant');
+        const input = document.getElementById('assistantInput');
+        if (input) {
+            input.value = `I am interested in listing ${listingId}. What should I ask the seller first?`;
+            input.focus();
+        }
     }
 
     function initAssistantPanel() {
         const body = document.getElementById('assistantChatBody');
         const countEl = document.getElementById('msgCount');
         if (!body) return;
+        switchMessageMode(activeMessageMode);
+        if (countEl) countEl.textContent = activeMessageMode === 'seller_demo' ? 'Demo seller chat ready' : (currentUser ? 'Live assistant ready' : 'Login required for AI');
+    }
+
+    function switchMessageMode(mode = 'assistant') {
+        activeMessageMode = mode;
+        const avatar = document.querySelector('#msgChatPanel .msg-conv__avatar');
+        const nameEl = document.querySelector('#msgChatPanel .msg-chat__header-name');
+        const subEl = document.querySelector('#msgChatPanel .msg-chat__header-listing');
+        const badge = document.getElementById('msgModeBadge');
+        const input = document.getElementById('assistantInput');
+        const body = document.getElementById('assistantChatBody');
+        if (!body) return;
+
+        if (mode === 'seller_demo') {
+            if (avatar) avatar.innerHTML = '<i class="bi bi-person-lines-fill"></i>';
+            if (nameEl) nameEl.textContent = 'Demo Seller';
+            if (subEl) subEl.textContent = 'In-app buyer ↔ seller communication (demo)';
+            if (badge) badge.textContent = 'Seller Chat';
+            if (input) input.placeholder = 'Message seller in-app...';
+            renderDemoSellerThread();
+            return;
+        }
+
+        if (avatar) avatar.innerHTML = '<i class="bi bi-stars"></i>';
+        if (nameEl) nameEl.textContent = 'PrimeDrive AI Assistant';
+        if (subEl) subEl.textContent = 'Buyer/Seller guidance with in-app actions';
+        if (badge) badge.textContent = 'Assistant';
+        if (input) input.placeholder = 'Ask about buying, selling, checkout, disputes, or upgrades...';
+
         if (!currentUser) {
             body.innerHTML = `<div class="msg-chat__empty"><i class="bi bi-lock"></i><p style="margin-top:10px;color:var(--text-tertiary);">Login to use AI Assistant.</p></div>`;
-            if (countEl) countEl.textContent = 'Login required';
             return;
         }
         if (!body.dataset.ready) {
@@ -5578,7 +5764,59 @@
             renderAssistantBubble('assistant', 'Hi! I can help with buying, selling, checkout, disputes, and plan upgrades.');
             body.dataset.ready = '1';
         }
-        if (countEl) countEl.textContent = 'Live assistant ready';
+    }
+
+    function sendChatMessage() {
+        if (activeMessageMode === 'seller_demo') {
+            sendDemoSellerMessage();
+            return;
+        }
+        sendAssistantQuery();
+    }
+
+    function openDemoSellerChat(listingId = null) {
+        const listing = demoListings.find(l => l.id === listingId) || demoListings[0];
+        if (listing) demoConversationListingId = listing.id;
+        navigate('messages');
+        switchMessageMode('seller_demo');
+        const countEl = document.getElementById('msgCount');
+        if (countEl) countEl.textContent = 'Demo seller chat ready';
+    }
+
+    function renderDemoSellerThread() {
+        const body = document.getElementById('assistantChatBody');
+        if (!body) return;
+        const listing = demoListings.find(l => l.id === demoConversationListingId) || demoListings[0];
+        if (!demoConversation.length) {
+            demoConversation = [
+                { role: 'seller', text: `Hi! This is the seller for the ${listing.make} ${listing.model}. Ask me anything about the car.` },
+                { role: 'seller', text: 'When ready, click "Demo Transaction" and I will confirm payment + handover in-app.' }
+            ];
+        }
+        body.innerHTML = '';
+        demoConversation.forEach(m => renderAssistantBubble(m.role === 'user' ? 'user' : 'assistant', m.text));
+    }
+
+    function sendDemoSellerMessage() {
+        const input = document.getElementById('assistantInput');
+        if (!input) return;
+        const message = input.value.trim();
+        if (!message) return;
+        input.value = '';
+        demoConversation.push({ role: 'user', text: message });
+        renderAssistantBubble('user', message);
+        const listing = demoListings.find(l => l.id === demoConversationListingId) || demoListings[0];
+        const responses = [
+            `Great question. The ${listing.make} ${listing.model} is still available and can be reserved today.`,
+            'Yes, we can continue fully in-app. I will confirm every milestone in chat.',
+            'If you want to proceed now, tap "Demo Transaction" and we can complete the pseudo purchase flow.',
+            'I can arrange viewing in Gaborone today. For demo purposes, we can complete the full flow instantly.'
+        ];
+        const reply = responses[(demoConversation.length + message.length) % responses.length];
+        setTimeout(() => {
+            demoConversation.push({ role: 'seller', text: reply });
+            renderAssistantBubble('assistant', reply);
+        }, 450);
     }
 
     function renderAssistantBubble(role, text, actions = []) {
@@ -5648,6 +5886,7 @@
 
     function askAssistantPreset(message) {
         navigate('messages');
+        switchMessageMode('assistant');
         const input = document.getElementById('assistantInput');
         if (!input) return;
         input.value = message;
@@ -5714,6 +5953,84 @@
        CHECKOUT / TRANSACTIONS
        =========================================== */
     let checkoutListing = null;
+    let demoTxnState = null;
+
+    function startDemoTransaction(listingId = null) {
+        const listing = demoListings.find(l => l.id === listingId) || demoListings[0];
+        if (!listing) return;
+        const key = `pd_demo_txn_${listing.id}`;
+        demoTxnState = JSON.parse(localStorage.getItem(key) || 'null') || {
+            listingId: listing.id,
+            stage: 0,
+            ref: `DEMO-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+            created_at: new Date().toISOString()
+        };
+        navigate('checkout');
+        renderDemoCheckout(listing, key);
+    }
+
+    function renderDemoCheckout(listing, storageKey) {
+        const content = document.getElementById('checkoutContent');
+        if (!content || !demoTxnState) return;
+        const stages = ['Started', 'Payment Sent', 'Seller Confirmed', 'Deal Complete'];
+        const current = demoTxnState.stage;
+        const progress = Math.min(100, Math.round((current / 3) * 100));
+        const nextCta = current >= 3
+            ? `<button class="btn btn--primary btn--full" onclick="openDemoSellerChat('${listing.id}')"><i class="bi bi-chat-dots"></i> Continue In-App Chat</button>`
+            : `<button class="btn btn--primary btn--full" onclick="advanceDemoTransaction('${listing.id}')"><i class="bi bi-arrow-right-circle"></i> Advance Demo Step</button>`;
+        content.innerHTML = `
+            <div class="checkout-card">
+                <div class="checkout-card__car">
+                    <img src="${listing.main_photo || getDemoImageForCar(listing)}" alt="${listing.make} ${listing.model}">
+                    <div class="checkout-card__car-info">
+                        <h3>${listing.make} ${listing.model} ${listing.year}</h3>
+                        <div style="font-size:0.82rem;color:var(--text-tertiary);">Pseudo transaction flow for demo presentation</div>
+                        <div style="font-weight:700;margin-top:4px;">${formatPrice(Number(listing.price || 0))}</div>
+                    </div>
+                </div>
+                <div class="checkout-card__breakdown">
+                    <div class="checkout-card__row"><span>Demo Reference</span><strong>${demoTxnState.ref}</strong></div>
+                    <div class="checkout-card__row"><span>Status</span><strong>${stages[current]}</strong></div>
+                    <div class="checkout-card__row"><span>Progress</span><strong>${progress}%</strong></div>
+                    <div style="height:8px;background:var(--bg-tertiary);border-radius:999px;overflow:hidden;margin-top:10px;">
+                        <div style="width:${progress}%;height:100%;background:linear-gradient(90deg,#60a5fa,#3b5bff);"></div>
+                    </div>
+                </div>
+                <div class="checkout-card__actions">
+                    ${nextCta}
+                    <button class="btn btn--ghost btn--full" style="margin-top:10px;" onclick="resetDemoTransaction('${listing.id}')"><i class="bi bi-arrow-counterclockwise"></i> Reset Demo Transaction</button>
+                    <div style="font-size:0.78rem;color:var(--text-tertiary);margin-top:10px;">Demo mode only: no real payment is processed.</div>
+                </div>
+            </div>
+        `;
+        localStorage.setItem(storageKey, JSON.stringify(demoTxnState));
+    }
+
+    function advanceDemoTransaction(listingId) {
+        const listing = demoListings.find(l => l.id === listingId) || demoListings[0];
+        if (!listing || !demoTxnState) return;
+        demoTxnState.stage = Math.min(3, demoTxnState.stage + 1);
+        const key = `pd_demo_txn_${listing.id}`;
+        localStorage.setItem(key, JSON.stringify(demoTxnState));
+        renderDemoCheckout(listing, key);
+        demoConversationListingId = listing.id;
+        const txnUpdates = [
+            'Buyer started secure in-app checkout.',
+            'Buyer marked payment as sent (demo).',
+            'Seller confirmed funds and vehicle handover (demo).',
+            'Transaction completed successfully in-app (demo).'
+        ];
+        const idx = demoTxnState.stage;
+        demoConversation.push({ role: 'seller', text: txnUpdates[idx] || txnUpdates[txnUpdates.length - 1] });
+    }
+
+    function resetDemoTransaction(listingId) {
+        const listing = demoListings.find(l => l.id === listingId) || demoListings[0];
+        if (!listing) return;
+        localStorage.removeItem(`pd_demo_txn_${listing.id}`);
+        demoTxnState = null;
+        startDemoTransaction(listing.id);
+    }
 
     async function initCheckout(listingId) {
         if (!currentUser) { showLogin(); return; }
