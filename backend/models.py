@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
@@ -28,6 +28,12 @@ class PaymentStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     REFUNDED = "refunded"
+
+
+class AssistantMessageRole(str, Enum):
+    USER = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"
 
 
 # Request Models
@@ -85,6 +91,57 @@ class OrangeMoneyCallback(BaseModel):
     transaction_id: str
     amount: float
     currency: str
+
+
+class AssistantToolOutput(BaseModel):
+    tool_name: str
+    success: bool = True
+    payload: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AssistantAction(BaseModel):
+    action_type: str
+    title: str
+    description: str
+    target_route: str
+    target_id: Optional[str] = None
+
+
+class AssistantEntitlementGate(BaseModel):
+    requires_upgrade: bool = False
+    current_tier: str
+    required_tier: Optional[str] = None
+    message: Optional[str] = None
+    upgrade_cta: Optional[str] = None
+
+
+class AssistantQueryRequest(BaseModel):
+    thread_id: Optional[str] = None
+    message: str = Field(min_length=2, max_length=4000)
+    listing_id: Optional[str] = None
+    context: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AssistantSuggestNextStepRequest(BaseModel):
+    thread_id: Optional[str] = None
+    goal: str = Field(min_length=2, max_length=500)
+    listing_id: Optional[str] = None
+    current_route: Optional[str] = None
+    context: Dict[str, Any] = Field(default_factory=dict)
+
+
+class AssistantListingReviewRequest(BaseModel):
+    thread_id: Optional[str] = None
+    listing_id: Optional[str] = None
+    listing_type: ListingType
+    brand: str
+    model: str
+    year: int = Field(ge=1990, le=2030)
+    mileage: int = Field(ge=0)
+    price: int = Field(ge=0)
+    location: str
+    condition: str
+    notes: Optional[str] = None
 
 
 # Response Models
@@ -185,3 +242,31 @@ class PaymentStatusResponse(BaseModel):
     tier_name: Optional[str]
     amount_pula: int
     message: str
+
+
+class AssistantQueryResponse(BaseModel):
+    thread_id: str
+    message_id: str
+    response: str
+    tools: List[AssistantToolOutput] = Field(default_factory=list)
+    actions: List[AssistantAction] = Field(default_factory=list)
+    entitlement: AssistantEntitlementGate
+
+
+class AssistantSuggestNextStepResponse(BaseModel):
+    thread_id: str
+    message_id: str
+    suggested_action: AssistantAction
+    reason: str
+    tools: List[AssistantToolOutput] = Field(default_factory=list)
+    entitlement: AssistantEntitlementGate
+
+
+class AssistantListingReviewResponse(BaseModel):
+    thread_id: str
+    message_id: str
+    score: int
+    summary: str
+    suggestions: List[str]
+    tools: List[AssistantToolOutput] = Field(default_factory=list)
+    entitlement: AssistantEntitlementGate

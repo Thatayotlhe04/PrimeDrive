@@ -94,6 +94,43 @@ CREATE TABLE payment_transactions (
     completed_at TIMESTAMP WITH TIME ZONE
 );
 
+-- Assistant Threads Table
+CREATE TABLE assistant_threads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(160) NOT NULL,
+    status VARCHAR(30) DEFAULT 'active' CHECK (status IN ('active', 'archived')),
+    source VARCHAR(50) DEFAULT 'in_app_assistant',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_message_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Assistant Messages Table
+CREATE TABLE assistant_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    thread_id UUID NOT NULL REFERENCES assistant_threads(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+    content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Assistant Actions Table
+CREATE TABLE assistant_actions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    thread_id UUID NOT NULL REFERENCES assistant_threads(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action_type VARCHAR(60) NOT NULL,
+    title VARCHAR(120) NOT NULL,
+    description TEXT,
+    target_route VARCHAR(80),
+    target_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Indexes for better query performance
 CREATE INDEX idx_users_tier ON users(current_tier_id);
 CREATE INDEX idx_listings_user ON car_listings(user_id);
@@ -101,6 +138,9 @@ CREATE INDEX idx_listings_status ON car_listings(status);
 CREATE INDEX idx_listings_type ON car_listings(listing_type);
 CREATE INDEX idx_transactions_user ON payment_transactions(user_id);
 CREATE INDEX idx_transactions_status ON payment_transactions(status);
+CREATE INDEX idx_assistant_threads_user ON assistant_threads(user_id, last_message_at DESC);
+CREATE INDEX idx_assistant_messages_thread ON assistant_messages(thread_id, created_at);
+CREATE INDEX idx_assistant_actions_thread ON assistant_actions(thread_id, created_at DESC);
 
 -- Row Level Security (RLS) Policies
 
@@ -108,6 +148,9 @@ CREATE INDEX idx_transactions_status ON payment_transactions(status);
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE car_listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assistant_threads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assistant_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assistant_actions ENABLE ROW LEVEL SECURITY;
 
 -- Users can read their own data
 CREATE POLICY "Users can view own profile" ON users
@@ -137,6 +180,27 @@ CREATE POLICY "Users can update own listings" ON car_listings
 CREATE POLICY "Users can view own transactions" ON payment_transactions
     FOR SELECT USING (auth.uid() = user_id);
 
+-- Users can view and manage own assistant threads
+CREATE POLICY "Users can view own assistant threads" ON assistant_threads
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own assistant threads" ON assistant_threads
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own assistant threads" ON assistant_threads
+    FOR UPDATE USING (auth.uid() = user_id);
+
+-- Users can view and create own assistant messages
+CREATE POLICY "Users can view own assistant messages" ON assistant_messages
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own assistant messages" ON assistant_messages
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Users can view and create own assistant actions
+CREATE POLICY "Users can view own assistant actions" ON assistant_actions
+    FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own assistant actions" ON assistant_actions
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+
 -- Function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -152,6 +216,10 @@ CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
 
 CREATE TRIGGER update_car_listings_updated_at BEFORE UPDATE ON car_listings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_assistant_threads_updated_at BEFORE UPDATE ON assistant_threads
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 
 -- Function to check if user can create listing (tier limits)
 CREATE OR REPLACE FUNCTION can_create_listing(p_user_id UUID)
