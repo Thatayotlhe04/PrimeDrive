@@ -152,8 +152,6 @@
 
             --success: #22c55e;
             --success-bg: #f0fdf4;
-            --whatsapp: #25d366;
-            --whatsapp-hover: #20bd5a;
 
             --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
             --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
@@ -355,15 +353,6 @@
             border-color: var(--accent);
             color: var(--accent);
             transform: translateY(-1px);
-        }
-        .btn--whatsapp {
-            background: var(--whatsapp);
-            color: white;
-        }
-        .btn--whatsapp:hover {
-            background: var(--whatsapp-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(37,211,102,0.3);
         }
         .btn--google {
             background: #fff;
@@ -1854,39 +1843,10 @@
             background: var(--bg-secondary); color: var(--text-primary);
         }
 
-        /* Shift support float up when install banner is showing */
-        .pwa-install-banner.show ~ .wa-float { bottom: 100px; }
-
         @media (max-width: 480px) {
             .pwa-install-banner { flex-wrap: wrap; }
             .pwa-install-banner__actions { width: 100%; }
             .pwa-install-banner__actions .btn { flex: 1; }
-        }
-
-        /* ========================================
-           WHATSAPP FLOAT
-           ======================================== */
-        .wa-float {
-            position: fixed;
-            bottom: 28px; right: 28px;
-            z-index: 998;
-        }
-        .wa-float__btn {
-            width: 56px; height: 56px;
-            background: var(--whatsapp);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-            cursor: pointer;
-            transition: all var(--transition);
-            box-shadow: 0 4px 16px rgba(37,211,102,0.35);
-        }
-        .wa-float__btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 6px 24px rgba(37,211,102,0.45);
         }
 
         /* ========================================
@@ -2763,8 +2723,6 @@
             .hero__actions { flex-direction: column; }
             .hero__actions .btn { width: 100%; }
             .brands-strip__inner { gap: 24px; }
-            .wa-float { bottom: 20px; right: 20px; }
-            .wa-float__btn { width: 52px; height: 52px; font-size: 1.3rem; }
             .paywall__guarantee { gap: 16px; flex-direction: column; align-items: center; }
             .tier-card { padding: 24px 20px; }
         }
@@ -3488,7 +3446,7 @@
                             <div class="contact__item-icon"><i class="bi bi-headset"></i></div>
                             <div>
                                 <div class="contact__item-label">Support</div>
-                                <div class="contact__item-value"><a href="https://wa.me/26777625997" target="_blank">Chat with us now</a></div>
+                                <div class="contact__item-value">Message us in-app from any listing</div>
                             </div>
                         </div>
                         <div class="contact__item">
@@ -3506,7 +3464,6 @@
                             </div>
                         </div>
                         <div class="contact__socials">
-                            <a href="https://wa.me/26777625997" target="_blank" class="contact__social-link" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
                             <a href="#" class="contact__social-link" title="Facebook"><i class="bi bi-facebook"></i></a>
                             <a href="#" class="contact__social-link" title="Instagram"><i class="bi bi-instagram"></i></a>
                             <a href="#" class="contact__social-link" title="TikTok"><i class="bi bi-tiktok"></i></a>
@@ -4338,14 +4295,6 @@
         <div class="receipt-card" id="receiptCard"></div>
     </div>
 
-    <!-- Support Float -->
-    <div class="wa-float">
-        <a href="https://wa.me/26777625997" target="_blank" class="wa-float__btn" title="PrimeDrive Support">
-            <i class="bi bi-headset"></i>
-        </a>
-    </div>
-
-
     <!-- ========================================
          JAVASCRIPT
          ======================================== -->
@@ -4362,7 +4311,6 @@
         e.preventDefault(); // Don't crash
     });
 
-    const WHATSAPP = "26777625997";
 
     // ===========================================
     // SUPABASE CLIENT (single init, no guards)
@@ -5183,7 +5131,7 @@
                             <div class="car-card__name">${car.make} ${car.model} ${car.year}</div>
                             <div class="car-card__specs">
                                 <span class="car-card__spec"><i class="bi bi-eye"></i> ${car.views || 0} views</span>
-                                <span class="car-card__spec"><i class="bi bi-chat-dots"></i> ${car.whatsapp_clicks || 0} inquiries</span>
+                                <span class="car-card__spec"><i class="bi bi-chat-dots"></i> ${car.message_initiated_count || 0} inquiries</span>
                                 <span class="car-card__spec"><i class="bi bi-geo-alt"></i> ${car.location}</span>
                             </div>
                             <div class="car-card__divider"></div>
@@ -5197,7 +5145,7 @@
 
             // Stats
             const totalViews = myListings.reduce((sum, l) => sum + (l.views || 0), 0);
-            const totalClicks = myListings.reduce((sum, l) => sum + (l.whatsapp_clicks || 0), 0);
+            const totalClicks = myListings.reduce((sum, l) => sum + (l.message_initiated_count || 0), 0);
             document.getElementById('statMyListings').textContent = myListings.length;
             document.getElementById('statMyViews').textContent = totalViews;
             document.getElementById('statMyClicks').textContent = totalClicks;
@@ -5217,7 +5165,7 @@
                 tbody.innerHTML = leads.map(lead => {
                     const listing = myListings.find(l => l.id === lead.listing_id);
                     const listingName = listing ? `${listing.make} ${listing.model}` : lead.listing_id.slice(0,8);
-                    const typeLabels = { whatsapp_seller: 'Message', whatsapp_primedrive: 'PD Support', verified_deal_request: 'Verified Deal' };
+                    const typeLabels = { in_app_message: 'Message', verified_deal_request: 'Verified Deal' };
                     const statusColors = { open: '#3b82f6', contacted: '#8b5cf6', negotiating: '#f59e0b', closed: '#16a34a', lost: '#ef4444' };
                     return `<tr>
                         <td><code style="font-size:0.8rem;background:var(--bg-secondary);padding:2px 8px;border-radius:4px;">${lead.lead_code}</code></td>
@@ -6210,24 +6158,11 @@
                     .single();
                 if (error) throw error;
 
-            // Build WhatsApp payment message
-            const payMsg =
-                `*SUBSCRIPTION PAYMENT — PrimeDrive*\n\n` +
-                `Reference: ${ref}\n` +
-                `Plan: ${config.label}\n` +
-                `Amount: P${config.price}/month\n` +
-                `Method: ${formatMethod(selectedPayMethod)}\n` +
-                `Email: ${currentProfile.email}\n\n` +
-                `I'd like to activate my ${config.label} subscription.`;
-
-            // Open WhatsApp with payment details
-            window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(payMsg)}`, '_blank');
-
             alert(
                 `Payment request created!\n\n` +
                 `Reference: ${ref}\n` +
                 `Amount: P${config.price}\n\n` +
-                `Send the payment via ${formatMethod(selectedPayMethod)} with your reference number. We'll activate your plan within 24 hours.`
+                `Complete payment via ${formatMethod(selectedPayMethod)} using your reference number, then submit proof in the app for activation within 24 hours.`
             );
 
         } catch (err) {

@@ -355,8 +355,8 @@ async def get_tiers():
     result = supabase.from_("subscription_tiers").select("*").order("price_pula").execute()
 
     tier_features = {
-        "free": ["1 active listing", "90-day duration", "WhatsApp support"],
-        "basic": ["3 active listings", "90-day duration", "Priority WhatsApp support", "Edit listings"],
+        "free": ["1 active listing", "90-day duration", "In-app support"],
+        "basic": ["3 active listings", "90-day duration", "Priority in-app support", "Edit listings"],
         "standard": ["10 active listings", "90-day duration", "Priority support", "Featured badge"],
         "premium": ["Unlimited listings", "90-day duration", "Top placement", "Verified badge", "24/7 support"]
     }
@@ -479,21 +479,21 @@ async def initiate_subscription(
             # If Orange Money is unavailable, fall back to manual
             message = (
                 f"Orange Money is temporarily unavailable. "
-                f"Please send P{tier['price_pula']} via Orange Money to {settings.whatsapp_number} "
-                f"with reference: {txn_ref}, then confirm your payment."
+                f"Please complete payment via Orange Money and keep your confirmation reference: {txn_ref}. "
+                f"After payment, submit the reference in-app for activation."
             )
             txn_data["payment_method"] = "manual"
     elif subscription.payment_method == "myzaka":
         message = (
-            f"Send P{tier['price_pula']} via MyZaka to {settings.whatsapp_number}. "
+            f"Send P{tier['price_pula']} via MyZaka. "
             f"Use reference: {txn_ref}. "
-            f"After payment, confirm with your MyZaka receipt reference."
+            f"After payment, confirm in-app with your MyZaka receipt reference."
         )
     else:
         message = (
-            f"Send P{tier['price_pula']} to {settings.whatsapp_number}. "
+            f"Send P{tier['price_pula']} using your selected payment channel. "
             f"Use reference: {txn_ref}. "
-            f"Contact us on WhatsApp with proof of payment for activation."
+            f"Submit proof of payment in-app for activation."
         )
 
     supabase.from_("payment_transactions").insert(txn_data).execute()
