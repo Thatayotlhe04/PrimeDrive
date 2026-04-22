@@ -4432,7 +4432,6 @@
         ['#a78bfa', '#4f46e5'],
         ['#60a5fa', '#2563eb'],
     ];
-    const demoCarPhotoPool = Object.values(carImages);
     function createDemoListingImage(title = 'PrimeDrive Demo', subtitle = 'Glassy Listing Preview', idx = 0) {
         const [a, b] = demoPalette[idx % demoPalette.length];
         const safeTitle = String(title).replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -4462,8 +4461,9 @@
     function getDemoImageForCar(car = {}) {
         const make = car.make || car.brand || 'PrimeDrive';
         const model = car.model || 'Listing';
-        const idx = `${make}${model}`.length % demoCarPhotoPool.length;
-        return demoCarPhotoPool[idx] || createDemoListingImage(`${make} ${model}`, 'Demo vehicle image', idx);
+        const year = car.year || 'Demo';
+        const idx = `${make}${model}`.length % demoPalette.length;
+        return createDemoListingImage(`${make} ${model} ${year}`, 'Demo vehicle image', idx);
     }
     const demoListings = [
         { id: 'demo-1', make: 'Toyota', model: 'Hilux GD-6', year: 2021, price: 319000, mileage: 64000, transmission: 'Auto', location: 'Gaborone', status: 'verified', seller_type: 'dealer' },
@@ -4588,11 +4588,7 @@
                 </div>
             </div>` : '';
 
-        const openAction = id
-            ? (String(id).startsWith('demo-')
-                ? `onclick="openDemoListingDetail('${id}')" style="cursor:pointer;"`
-                : `onclick="openListingDetail('${id}')" style="cursor:pointer;"`)
-            : '';
+        const openAction = id && !String(id).startsWith('demo-') ? `onclick="openListingDetail('${id}')" style="cursor:pointer;"` : '';
         return `
         <div class="car-card reveal" ${openAction}>
             <div class="car-card__image">
