@@ -792,39 +792,97 @@
         }
         .brands-strip__item:hover { opacity: 0.8; }
 
-        /* Demo videos */
+        /* Product walkthroughs */
         .demo-video {
-            padding: 18px 0 42px;
+            padding: 22px 0 48px;
+        }
+        .demo-video__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 14px;
+            margin-bottom: 18px;
         }
         .demo-video__grid {
             display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 22px;
             align-items: start;
         }
         .demo-video__card {
             border-radius: var(--radius-xl);
             overflow: hidden;
-            border: 1px solid var(--border-default);
-            box-shadow: var(--shadow-card);
-            background: var(--bg-card);
+            border: 1px solid var(--glass-stroke);
+            box-shadow: 0 20px 45px -28px var(--glass-glow), var(--shadow-card);
+            background: linear-gradient(150deg, rgba(255,255,255,0.7), rgba(255,255,255,0.4));
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            flex-direction: column;
         }
-        .demo-video__card--offset {
-            margin-top: 36px;
+        [data-theme="dark"] .demo-video__card {
+            background: linear-gradient(155deg, rgba(37, 44, 65, 0.75), rgba(20, 24, 34, 0.58));
         }
-        .demo-video__card iframe {
+        .demo-video__thumb {
+            position: relative;
             width: 100%;
-            aspect-ratio: 16 / 9;
-            border: 0;
+            aspect-ratio: 16 / 10;
+            overflow: hidden;
+        }
+        .demo-video__thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             display: block;
+        }
+        .demo-video__thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(8, 13, 33, 0.08) 0%, rgba(8, 13, 33, 0.58) 100%);
+        }
+        .demo-video__pill {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 2;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: #fff;
+            border-radius: var(--radius-full);
+            padding: 5px 10px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+        .demo-video__content {
+            padding: 16px;
+        }
+        .demo-video__title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .demo-video__desc {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .demo-video__actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         @media (max-width: 900px) {
             .demo-video__grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
-            .demo-video__card--offset {
-                margin-top: 0;
-            }
+        }
+        @media (max-width: 640px) {
+            .demo-video__header { flex-direction: column; align-items: flex-start; }
+            .demo-video__grid { grid-template-columns: 1fr; }
         }
 
         /* Featured Listings */
@@ -897,9 +955,13 @@
             border-radius: var(--radius-lg);
             overflow: hidden;
             min-height: 520px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: linear-gradient(150deg, rgba(255,255,255,0.72), rgba(255,255,255,0.38));
+            box-shadow: 0 24px 52px -30px var(--glass-glow);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        [data-theme="dark"] .msg-layout {
+            background: linear-gradient(158deg, rgba(32, 38, 56, 0.78), rgba(18, 22, 33, 0.62));
         }
         .msg-list {
             border-right: 1px solid var(--border-default);
@@ -3056,10 +3118,6 @@
                             <div class="hero__car-image" style="height:400px;">
                                 <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1200&q=80&auto=format&fit=crop" alt="BMW 320i M Sport">
                                 <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(4,10,30,0.12) 0%, rgba(4,10,30,0.7) 100%);"></div>
-                                <div style="position:absolute;left:22px;right:22px;bottom:22px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px;padding:14px 16px;">
-                                    <div class="hero__car-name" style="margin-bottom:6px;color:#fff;">BMW 320i M Sport</div>
-                                    <p class="body-sm" style="margin:0;color:rgba(255,255,255,0.86);">Verified listing with in-app messaging, checkout, and protected payments.</p>
-                                </div>
                                 <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
                             </div>
                         </div>
@@ -3070,12 +3128,54 @@
 
         <section class="demo-video">
             <div class="container">
+                <div class="demo-video__header">
+                    <div>
+                        <div class="label"><i class="bi bi-play-btn-fill"></i> Product Walkthroughs</div>
+                        <h2 class="heading-md">Try the key flows in one tap</h2>
+                    </div>
+                </div>
                 <div class="demo-video__grid">
                     <div class="demo-video__card">
-                        <iframe src="https://www.youtube.com/embed/ysz5S6PUM-U" title="PrimeDrive Demo Walkthrough 1" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                        <div class="demo-video__thumb">
+                            <span class="demo-video__pill">Buyer Flow</span>
+                            <img src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80&auto=format&fit=crop" alt="PrimeDrive buyer walkthrough">
+                        </div>
+                        <div class="demo-video__content">
+                            <div class="demo-video__title">Browse → Message Seller → Checkout</div>
+                            <div class="demo-video__desc">Loads the buyer journey and opens in-app seller chat for the selected listing.</div>
+                            <div class="demo-video__actions">
+                                <button class="btn btn--primary btn--sm" onclick="runProductWalkthrough('buyer')"><i class="bi bi-play-fill"></i> Start</button>
+                                <button class="btn btn--ghost btn--sm" onclick="navigate('buy')">Open Buy</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="demo-video__card demo-video__card--offset">
-                        <iframe src="https://www.youtube.com/embed/jNQXAC9IVRw" title="PrimeDrive Demo Walkthrough 2" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                    <div class="demo-video__card">
+                        <div class="demo-video__thumb">
+                            <span class="demo-video__pill">Seller Flow</span>
+                            <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&q=80&auto=format&fit=crop" alt="PrimeDrive seller walkthrough">
+                        </div>
+                        <div class="demo-video__content">
+                            <div class="demo-video__title">List Car → Leads → Demo Transaction</div>
+                            <div class="demo-video__desc">Takes you through seller actions and opens the in-app buyer/seller chat simulation.</div>
+                            <div class="demo-video__actions">
+                                <button class="btn btn--primary btn--sm" onclick="runProductWalkthrough('seller')"><i class="bi bi-play-fill"></i> Start</button>
+                                <button class="btn btn--ghost btn--sm" onclick="navigate('sell')">Open Sell</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-video__card">
+                        <div class="demo-video__thumb">
+                            <span class="demo-video__pill">AI Assistant</span>
+                            <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80&auto=format&fit=crop" alt="PrimeDrive AI assistant walkthrough">
+                        </div>
+                        <div class="demo-video__content">
+                            <div class="demo-video__title">Assistant Guidance (Separate from Seller Chat)</div>
+                            <div class="demo-video__desc">Opens the dedicated AI assistant panel for strategy and next-step guidance only.</div>
+                            <div class="demo-video__actions">
+                                <button class="btn btn--primary btn--sm" onclick="runProductWalkthrough('assistant')"><i class="bi bi-play-fill"></i> Start</button>
+                                <button class="btn btn--ghost btn--sm" onclick="navigate('messages')">Open Messages</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -4288,7 +4388,7 @@
                 <div class="listings__header">
                     <div class="listings__header-text">
                         <div class="label"><i class="bi bi-chat-square-text"></i> In-App Communication</div>
-                        <h1 class="heading-lg">Messages &amp; Assistant</h1>
+                        <h1 class="heading-lg">Messages + AI Assistant (Separate)</h1>
                         <div class="listings__count" id="msgCount">Loading...</div>
                     </div>
                 </div>
@@ -4297,14 +4397,14 @@
                     <div class="msg-list" id="assistantQuickActions">
                         <div style="padding:16px;border-bottom:1px solid var(--border-light);font-weight:700;">Quick Actions</div>
                         <div style="padding:14px;display:grid;gap:10px;">
-                            <button class="btn btn--ghost btn--full" onclick="openDemoSellerChat()"><i class="bi bi-person-lines-fill"></i> Demo Seller Chat</button>
+                            <button class="btn btn--ghost btn--full" onclick="openDemoSellerChat()"><i class="bi bi-person-lines-fill"></i> Buyer/Seller Chat (In-App)</button>
                             <button class="btn btn--ghost btn--full" onclick="startDemoTransaction()"><i class="bi bi-bag-heart"></i> Demo Transaction</button>
                             <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to buy this car safely. What should I do first?')"><i class="bi bi-bag-check"></i> Buyer Help</button>
                             <button class="btn btn--ghost btn--full" onclick="askAssistantPreset('I want to sell faster. Suggest my next best action.')"><i class="bi bi-tag"></i> Seller Help</button>
                             <button class="btn btn--ghost btn--full" onclick="requestNextStep()"><i class="bi bi-signpost"></i> Suggest Next Step</button>
                             <button class="btn btn--ghost btn--full" onclick="reviewCurrentListing()"><i class="bi bi-clipboard2-check"></i> Review Listing (Premium)</button>
                         </div>
-                        <div style="padding:12px 14px;color:var(--text-tertiary);font-size:0.82rem;">The assistant can direct you to checkout, disputes, listings, messages, or upgrades.</div>
+                        <div style="padding:12px 14px;color:var(--text-tertiary);font-size:0.82rem;">Buyer/seller chat is separate from AI assistant. Use seller chat for negotiation; use assistant for guidance.</div>
                     </div>
 
                     <div class="msg-chat" id="msgChatPanel">
@@ -5762,22 +5862,34 @@
        AI ASSISTANT PANEL
        =========================================== */
     let assistantThreadId = null;
-    let activeMessageMode = 'seller_demo';
+    let activeMessageMode = 'assistant';
     let demoConversation = [];
     let demoConversationListingId = null;
     const API_BASE = localStorage.getItem('pd_api_base') || 'http://localhost:8000';
 
     async function startConversation(listingId, sellerId) {
-        if (String(listingId || '').startsWith('demo-') || !currentUser) {
-            openDemoSellerChat(listingId);
+        openDemoSellerChat(listingId);
+    }
+
+    function runProductWalkthrough(type = 'buyer') {
+        if (type === 'buyer') {
+            navigate('buy');
+            setTimeout(() => openDemoSellerChat(demoListings?.[0]?.id || null), 120);
+            return;
+        }
+        if (type === 'seller') {
+            navigate('sell');
+            setTimeout(() => {
+                navigate('messages');
+                openDemoSellerChat(demoListings?.[0]?.id || null);
+            }, 140);
             return;
         }
         navigate('messages');
-        activeMessageMode = 'assistant';
         switchMessageMode('assistant');
         const input = document.getElementById('assistantInput');
         if (input) {
-            input.value = `I am interested in listing ${listingId}. What should I ask the seller first?`;
+            input.value = 'Show me the safest next step for buying or selling on PrimeDrive.';
             input.focus();
         }
     }
@@ -5787,7 +5899,7 @@
         const countEl = document.getElementById('msgCount');
         if (!body) return;
         switchMessageMode(activeMessageMode);
-        if (countEl) countEl.textContent = activeMessageMode === 'seller_demo' ? 'Demo seller chat ready' : (currentUser ? 'Live assistant ready' : 'Login required for AI');
+        if (countEl) countEl.textContent = currentUser ? 'Seller chat + AI assistant ready' : 'Login required for AI';
     }
 
     function switchMessageMode(mode = 'assistant') {
