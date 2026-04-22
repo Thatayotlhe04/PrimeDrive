@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # App
     secret_key: str
-    whatsapp_number: str = "26777625997"
+    support_contact_value: str = "26777625997"
     frontend_url: str = "http://localhost:3000"
     subscription_duration_days: int = 30
 

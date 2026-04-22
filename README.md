@@ -157,7 +157,7 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 📬 Contact
 
-- **WhatsApp**: +267 77 625 997
+- **Support**: In-app messaging from listing pages
 - **Location**: Gaborone, Botswana
 
 ---
