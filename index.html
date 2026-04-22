@@ -561,6 +561,9 @@
            ======================================== */
         .page { display: none; }
         .page.active { display: block; animation: pageIn 0.35s ease; }
+        #page-home {
+            background: #eef5ff;
+        }
 
         @keyframes pageIn {
             from { opacity: 0; transform: translateY(12px); }
@@ -788,6 +791,111 @@
             transition: opacity var(--transition);
         }
         .brands-strip__item:hover { opacity: 0.8; }
+
+        /* Demo videos */
+        .demo-video {
+            padding: 18px 0 42px;
+        }
+        .demo-video__grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 22px;
+            align-items: start;
+        }
+        .demo-video__card {
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            border: 1px solid var(--border-default);
+            box-shadow: var(--shadow-card);
+            background: var(--bg-card);
+        }
+        .demo-video__card--offset {
+            margin-top: 36px;
+        }
+        .demo-video__head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-default);
+            background: linear-gradient(180deg, rgba(59, 91, 255, 0.08), rgba(59, 91, 255, 0.02));
+        }
+        .demo-video__title {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .demo-video__chip {
+            font-size: 0.72rem;
+            color: var(--accent);
+            font-weight: 700;
+            background: var(--accent-light);
+            border-radius: var(--radius-full);
+            padding: 4px 10px;
+        }
+        .demo-video__body {
+            padding: 14px;
+        }
+        .demo-video__screen {
+            border: 1px solid var(--border-default);
+            border-radius: 14px;
+            padding: 14px;
+            background: var(--bg-primary);
+        }
+        .demo-video__step {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 8px 0;
+        }
+        .demo-video__num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent-light);
+            color: var(--accent);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .demo-video__step strong {
+            display: block;
+            font-size: 0.83rem;
+            line-height: 1.2;
+        }
+        .demo-video__step span {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+        }
+        .demo-video__progress {
+            margin-top: 14px;
+            height: 6px;
+            border-radius: var(--radius-full);
+            background: var(--bg-secondary);
+            overflow: hidden;
+        }
+        .demo-video__progress-bar {
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(90deg, #3b5bff, #60a5fa);
+            border-radius: inherit;
+            animation: demoProgress 3.2s ease-in-out infinite alternate;
+        }
+        @keyframes demoProgress {
+            from { width: 32%; }
+            to { width: 90%; }
+        }
+        @media (max-width: 900px) {
+            .demo-video__grid {
+                grid-template-columns: 1fr;
+            }
+            .demo-video__card--offset {
+                margin-top: 0;
+            }
+        }
 
         /* Featured Listings */
         .featured-listings {
@@ -3016,12 +3124,65 @@
                     <div class="hero__featured">
                         <div class="hero__car-card">
                             <div class="hero__car-image" style="height:400px;">
-                                <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=80&auto=format&fit=crop" alt="Featured demo listing">
+                                <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1200&q=80&auto=format&fit=crop" alt="BMW 320i M Sport">
                                 <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(4,10,30,0.12) 0%, rgba(4,10,30,0.7) 100%);"></div>
                                 <div style="position:absolute;left:22px;right:22px;bottom:22px;background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:14px;padding:14px 16px;">
-                                    <div class="hero__car-name" style="margin-bottom:6px;color:#fff;">Demo Listing • BMW 320i M Sport</div>
-                                    <p class="body-sm" style="margin:0;color:rgba(255,255,255,0.86);">Fresh, glassy preview cards are now enabled for live and demo listings.</p>
+                                    <div class="hero__car-name" style="margin-bottom:6px;color:#fff;">BMW 320i M Sport</div>
+                                    <p class="body-sm" style="margin:0;color:rgba(255,255,255,0.86);">Verified listing with in-app messaging, checkout, and protected payments.</p>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-video">
+            <div class="container">
+                <div class="demo-video__grid">
+                    <div class="demo-video__card">
+                        <div class="demo-video__head">
+                            <div class="demo-video__title">Buyer Demo Flow</div>
+                            <div class="demo-video__chip">In-App Demo</div>
+                        </div>
+                        <div class="demo-video__body">
+                            <div class="demo-video__screen">
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">1</div>
+                                    <div><strong>Browse verified listings</strong><span>Use filters to find exact make, model, budget, and location.</span></div>
+                                </div>
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">2</div>
+                                    <div><strong>Message seller in-app</strong><span>Ask for service history, condition details, and schedule inspection.</span></div>
+                                </div>
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">3</div>
+                                    <div><strong>Start protected checkout</strong><span>Create transaction reference and track payment milestones.</span></div>
+                                </div>
+                                <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="demo-video__card demo-video__card--offset">
+                        <div class="demo-video__head">
+                            <div class="demo-video__title">Seller Demo Flow</div>
+                            <div class="demo-video__chip">In-App Demo</div>
+                        </div>
+                        <div class="demo-video__body">
+                            <div class="demo-video__screen">
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">1</div>
+                                    <div><strong>Post listing with photos</strong><span>Add make, model, year, mileage, pricing, and upload car images.</span></div>
+                                </div>
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">2</div>
+                                    <div><strong>Respond to qualified buyers</strong><span>Handle all buyer chats in one message panel linked to listings.</span></div>
+                                </div>
+                                <div class="demo-video__step">
+                                    <div class="demo-video__num">3</div>
+                                    <div><strong>Close transaction securely</strong><span>Confirm payment stage, handover, and receipt from dashboard.</span></div>
+                                </div>
+                                <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
                             </div>
                         </div>
                     </div>
@@ -4432,7 +4593,7 @@
         ['#a78bfa', '#4f46e5'],
         ['#60a5fa', '#2563eb'],
     ];
-    function createDemoListingImage(title = 'PrimeDrive Demo', subtitle = 'Glassy Listing Preview', idx = 0) {
+    function createDemoListingImage(title = 'PrimeDrive Demo', subtitle = 'PrimeDrive Demo Vehicle', idx = 0) {
         const [a, b] = demoPalette[idx % demoPalette.length];
         const safeTitle = String(title).replace(/&/g, '&amp;').replace(/</g, '&lt;');
         const safeSubtitle = String(subtitle).replace(/&/g, '&amp;').replace(/</g, '&lt;');
@@ -4459,11 +4620,20 @@
         return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
     }
     function getDemoImageForCar(car = {}) {
-        const make = car.make || car.brand || 'PrimeDrive';
-        const model = car.model || 'Listing';
-        const year = car.year || 'Demo';
+        const make = String(car.make || car.brand || '').toLowerCase();
+        const model = String(car.model || '').toLowerCase();
+        if (make.includes('bmw')) return carImages.bmw3;
+        if (make.includes('toyota') && model.includes('hilux')) return carImages.hilux;
+        if (make.includes('toyota')) return carImages.corolla;
+        if (make.includes('mercedes')) return carImages.mercedesC;
+        if (make.includes('volkswagen') || make.includes('vw')) return carImages.polo;
+        if (make.includes('ford')) return carImages.ranger;
+        if (make.includes('hyundai')) return carImages.tucson;
+        if (make.includes('nissan')) return carImages.xtrail;
+        if (make.includes('honda')) return carImages.fit;
+        if (make.includes('suzuki')) return carImages.swift;
         const idx = `${make}${model}`.length % demoPalette.length;
-        return createDemoListingImage(`${make} ${model} ${year}`, 'Demo vehicle image', idx);
+        return createDemoListingImage(`${car.make || 'PrimeDrive'} ${car.model || 'Listing'} ${car.year || 'Demo'}`, 'Demo vehicle image', idx);
     }
     const demoListings = [
         { id: 'demo-1', make: 'Toyota', model: 'Hilux GD-6', year: 2021, price: 319000, mileage: 64000, transmission: 'Auto', location: 'Gaborone', status: 'verified', seller_type: 'dealer' },
@@ -4588,7 +4758,11 @@
                 </div>
             </div>` : '';
 
-        const openAction = id && !String(id).startsWith('demo-') ? `onclick="openListingDetail('${id}')" style="cursor:pointer;"` : '';
+        const openAction = id
+            ? (String(id).startsWith('demo-')
+                ? `onclick="openDemoListingDetail('${id}')" style="cursor:pointer;"`
+                : `onclick="openListingDetail('${id}')" style="cursor:pointer;"`)
+            : '';
         return `
         <div class="car-card reveal" ${openAction}>
             <div class="car-card__image">
