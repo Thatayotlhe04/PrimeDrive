@@ -812,81 +812,11 @@
         .demo-video__card--offset {
             margin-top: 36px;
         }
-        .demo-video__head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--border-default);
-            background: linear-gradient(180deg, rgba(59, 91, 255, 0.08), rgba(59, 91, 255, 0.02));
-        }
-        .demo-video__title {
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-        .demo-video__chip {
-            font-size: 0.72rem;
-            color: var(--accent);
-            font-weight: 700;
-            background: var(--accent-light);
-            border-radius: var(--radius-full);
-            padding: 4px 10px;
-        }
-        .demo-video__body {
-            padding: 14px;
-        }
-        .demo-video__screen {
-            border: 1px solid var(--border-default);
-            border-radius: 14px;
-            padding: 14px;
-            background: var(--bg-primary);
-        }
-        .demo-video__step {
-            display: flex;
-            gap: 10px;
-            align-items: flex-start;
-            padding: 8px 0;
-        }
-        .demo-video__num {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--accent-light);
-            color: var(--accent);
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-        .demo-video__step strong {
+        .demo-video__card iframe {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: 0;
             display: block;
-            font-size: 0.83rem;
-            line-height: 1.2;
-        }
-        .demo-video__step span {
-            display: block;
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-        }
-        .demo-video__progress {
-            margin-top: 14px;
-            height: 6px;
-            border-radius: var(--radius-full);
-            background: var(--bg-secondary);
-            overflow: hidden;
-        }
-        .demo-video__progress-bar {
-            height: 100%;
-            width: 45%;
-            background: linear-gradient(90deg, #3b5bff, #60a5fa);
-            border-radius: inherit;
-            animation: demoProgress 3.2s ease-in-out infinite alternate;
-        }
-        @keyframes demoProgress {
-            from { width: 32%; }
-            to { width: 90%; }
         }
         @media (max-width: 900px) {
             .demo-video__grid {
@@ -3130,6 +3060,7 @@
                                     <div class="hero__car-name" style="margin-bottom:6px;color:#fff;">BMW 320i M Sport</div>
                                     <p class="body-sm" style="margin:0;color:rgba(255,255,255,0.86);">Verified listing with in-app messaging, checkout, and protected payments.</p>
                                 </div>
+                                <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
                             </div>
                         </div>
                     </div>
@@ -3141,50 +3072,10 @@
             <div class="container">
                 <div class="demo-video__grid">
                     <div class="demo-video__card">
-                        <div class="demo-video__head">
-                            <div class="demo-video__title">Buyer Demo Flow</div>
-                            <div class="demo-video__chip">In-App Demo</div>
-                        </div>
-                        <div class="demo-video__body">
-                            <div class="demo-video__screen">
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">1</div>
-                                    <div><strong>Browse verified listings</strong><span>Use filters to find exact make, model, budget, and location.</span></div>
-                                </div>
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">2</div>
-                                    <div><strong>Message seller in-app</strong><span>Ask for service history, condition details, and schedule inspection.</span></div>
-                                </div>
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">3</div>
-                                    <div><strong>Start protected checkout</strong><span>Create transaction reference and track payment milestones.</span></div>
-                                </div>
-                                <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
-                            </div>
-                        </div>
+                        <iframe src="https://www.youtube.com/embed/ysz5S6PUM-U" title="PrimeDrive Demo Walkthrough 1" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                     <div class="demo-video__card demo-video__card--offset">
-                        <div class="demo-video__head">
-                            <div class="demo-video__title">Seller Demo Flow</div>
-                            <div class="demo-video__chip">In-App Demo</div>
-                        </div>
-                        <div class="demo-video__body">
-                            <div class="demo-video__screen">
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">1</div>
-                                    <div><strong>Post listing with photos</strong><span>Add make, model, year, mileage, pricing, and upload car images.</span></div>
-                                </div>
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">2</div>
-                                    <div><strong>Respond to qualified buyers</strong><span>Handle all buyer chats in one message panel linked to listings.</span></div>
-                                </div>
-                                <div class="demo-video__step">
-                                    <div class="demo-video__num">3</div>
-                                    <div><strong>Close transaction securely</strong><span>Confirm payment stage, handover, and receipt from dashboard.</span></div>
-                                </div>
-                                <div class="demo-video__progress"><div class="demo-video__progress-bar"></div></div>
-                            </div>
-                        </div>
+                        <iframe src="https://www.youtube.com/embed/jNQXAC9IVRw" title="PrimeDrive Demo Walkthrough 2" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
                     </div>
                 </div>
             </div>
