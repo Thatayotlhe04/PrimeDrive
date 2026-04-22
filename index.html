@@ -703,18 +703,69 @@
             aspect-ratio: 16 / 9;
             margin-bottom: 14px;
             background: #0d142c;
+            padding: 18px;
+            display: flex;
+            align-items: stretch;
+            justify-content: stretch;
         }
-        .demo-video__stage img {
-            position: absolute;
-            inset: 0;
+        .demo-video__screen {
+            display: none;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.35s ease;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: linear-gradient(140deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+            padding: 16px;
+            color: #eaf0ff;
         }
-        .demo-video__stage img.active {
-            opacity: 1;
+        .demo-video__screen.active {
+            display: block;
+        }
+        .demo-video__screen-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 0.82rem;
+            color: rgba(234, 240, 255, 0.85);
+        }
+        .demo-video__screen-badge {
+            padding: 4px 8px;
+            border-radius: var(--radius-full);
+            background: rgba(59, 91, 255, 0.35);
+            color: #fff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .demo-video__screen-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .demo-video__screen-item {
+            border-radius: 10px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .demo-video__screen-item i {
+            font-size: 1rem;
+            color: #9fc1ff;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+        .demo-video__screen-item-title {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+        .demo-video__screen-item p {
+            font-size: 0.74rem;
+            line-height: 1.45;
+            color: rgba(234, 240, 255, 0.88);
         }
         .demo-video__step {
             display: inline-flex;
@@ -3009,21 +3060,54 @@
                 <div class="demo-video__header">
                     <div>
                         <div class="label"><i class="bi bi-play-btn-fill"></i> Product Walkthroughs</div>
-                        <h2 class="heading-md">Watch how PrimeDrive works automatically</h2>
+                        <h2 class="heading-md">See exactly how PrimeDrive works in-app</h2>
                     </div>
                 </div>
                 <div class="demo-video__card" id="walkthroughCard">
                     <div class="demo-video__stage" id="walkthroughStage">
-                        <img class="active" src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80&auto=format&fit=crop" alt="Browse trusted vehicles on PrimeDrive">
-                        <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&q=80&auto=format&fit=crop" alt="List your vehicle and manage leads on PrimeDrive">
-                        <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80&auto=format&fit=crop" alt="Get guided support from the PrimeDrive AI assistant">
+                        <div class="demo-video__screen active" data-scene="buyer" aria-label="Buyer flow walkthrough">
+                            <div class="demo-video__screen-head">
+                                <strong>Buyer flow in PrimeDrive</strong>
+                                <span class="demo-video__screen-badge">In-app only</span>
+                            </div>
+                            <div class="demo-video__screen-grid">
+                                <div class="demo-video__screen-item"><i class="bi bi-funnel"></i><span class="demo-video__screen-item-title">Filter listings</span><p>Search by make, budget, mileage, and location.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-chat-dots"></i><span class="demo-video__screen-item-title">Message seller</span><p>Ask questions and request details directly in chat.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-shield-check"></i><span class="demo-video__screen-item-title">Verify details</span><p>Review listing info, seller profile, and transaction notes.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-credit-card-2-front"></i><span class="demo-video__screen-item-title">Checkout steps</span><p>Follow the guided payment and confirmation flow.</p></div>
+                            </div>
+                        </div>
+                        <div class="demo-video__screen" data-scene="seller" aria-label="Seller flow walkthrough">
+                            <div class="demo-video__screen-head">
+                                <strong>Seller flow in PrimeDrive</strong>
+                                <span class="demo-video__screen-badge">In-app only</span>
+                            </div>
+                            <div class="demo-video__screen-grid">
+                                <div class="demo-video__screen-item"><i class="bi bi-card-checklist"></i><span class="demo-video__screen-item-title">Create listing</span><p>Add vehicle details, pricing, and photos.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-inboxes"></i><span class="demo-video__screen-item-title">Manage leads</span><p>Track buyer interest and respond from one inbox.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-graph-up-arrow"></i><span class="demo-video__screen-item-title">Monitor activity</span><p>See listing views and engagement in real-time.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-file-earmark-check"></i><span class="demo-video__screen-item-title">Close safely</span><p>Use guided handover and recordkeeping steps.</p></div>
+                            </div>
+                        </div>
+                        <div class="demo-video__screen" data-scene="assistant" aria-label="Assistant flow walkthrough">
+                            <div class="demo-video__screen-head">
+                                <strong>PrimeDrive assistant in-app</strong>
+                                <span class="demo-video__screen-badge">In-app only</span>
+                            </div>
+                            <div class="demo-video__screen-grid">
+                                <div class="demo-video__screen-item"><i class="bi bi-stars"></i><span class="demo-video__screen-item-title">Ask questions</span><p>Get help with buying, selling, or payments instantly.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-signpost-split"></i><span class="demo-video__screen-item-title">Next action</span><p>Receive step-by-step suggestions for your current task.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-exclamation-triangle"></i><span class="demo-video__screen-item-title">Dispute help</span><p>Understand how to report issues and resolve conflicts.</p></div>
+                                <div class="demo-video__screen-item"><i class="bi bi-headset"></i><span class="demo-video__screen-item-title">Support routing</span><p>Escalate to support when you need human assistance.</p></div>
+                            </div>
+                        </div>
                     </div>
                     <div class="demo-video__step">
                         <span class="demo-video__step-counter" id="walkthroughStepCounter">1</span>
                         <span id="walkthroughStepLabel">Buyer Flow</span>
                     </div>
                     <div class="demo-video__title" id="walkthroughTitle">Browse → Message Seller → Checkout</div>
-                    <div class="demo-video__desc" id="walkthroughDesc">PrimeDrive now auto-plays this walkthrough so users immediately see the full buyer journey.</div>
+                    <div class="demo-video__desc" id="walkthroughDesc">This walkthrough highlights real in-app actions only (no stock photos).</div>
                     <div class="demo-video__timeline">
                         <div class="demo-video__timeline-bar" id="walkthroughTimeline"></div>
                     </div>
@@ -5762,8 +5846,8 @@
             {
                 key: 'seller',
                 label: 'Seller Flow',
-                title: 'List Car → Leads → Demo Transaction',
-                desc: 'Post your car, track incoming leads, and move to transaction updates inside PrimeDrive.',
+                title: 'List Car → Leads → Transaction Updates',
+                desc: 'Post your car, track incoming leads, and manage transaction updates inside PrimeDrive.',
                 actionLabel: 'Open Sell',
             },
             {
@@ -5782,8 +5866,8 @@
         const stage = document.getElementById('walkthroughStage');
         if (!stage) return;
 
-        stage.querySelectorAll('img').forEach((img, imgIdx) => {
-            img.classList.toggle('active', imgIdx === index);
+        stage.querySelectorAll('.demo-video__screen').forEach((screen, screenIdx) => {
+            screen.classList.toggle('active', screenIdx === index);
         });
 
         const counter = document.getElementById('walkthroughStepCounter');
