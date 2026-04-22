@@ -701,76 +701,120 @@
             overflow: hidden;
             border-radius: var(--radius-lg);
             aspect-ratio: 16 / 9;
-            margin-bottom: 14px;
+            margin-bottom: 0;
             background: #0d142c;
+            padding: 0;
         }
-        .demo-video__stage img {
-            position: absolute;
-            inset: 0;
+        .walkthrough-video {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 0.35s ease;
+            position: relative;
+            background: linear-gradient(140deg, #030a22, #12204a);
         }
-        .demo-video__stage img.active {
-            opacity: 1;
-        }
-        .demo-video__step {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            padding: 5px 10px;
-            border-radius: var(--radius-full);
-            background: var(--accent-subtle);
-            color: var(--accent);
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-        .demo-video__step-counter {
-            width: 22px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--accent);
-            color: #fff;
-            border-radius: 50%;
-            font-size: 0.72rem;
-        }
-        .demo-video__title {
-            font-family: var(--font-display);
-            font-size: 1.05rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .demo-video__desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 14px;
-            line-height: 1.6;
-        }
-        .demo-video__timeline {
-            height: 5px;
-            border-radius: var(--radius-full);
-            background: rgba(59, 91, 255, 0.18);
-            overflow: hidden;
-            margin-bottom: 14px;
-        }
-        .demo-video__timeline-bar {
-            height: 100%;
-            width: 33.333%;
-            background: linear-gradient(90deg, #3b5bff, #60a5fa);
-            transition: width 0.35s ease;
-        }
-        .demo-video__actions {
+        .walkthrough-video__track {
             display: flex;
+            width: 300%;
+            height: 100%;
+            animation: walkthroughPan 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .walkthrough-video__frame {
+            width: 33.333%;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .walkthrough-video__window {
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 12px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .walkthrough-video__window-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .walkthrough-video__dots {
+            display: flex;
+            gap: 6px;
+        }
+        .walkthrough-video__dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.35);
+        }
+        .walkthrough-video__title {
+            color: #fff;
+            font-size: 0.84rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .walkthrough-video__layout {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 10px;
+            flex: 1;
+        }
+        .walkthrough-video__panel {
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.05);
+            padding: 10px;
+        }
+        .walkthrough-video__cards {
+            display: grid;
             gap: 8px;
-            flex-wrap: wrap;
+        }
+        .walkthrough-video__card {
+            border-radius: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+        }
+        .walkthrough-video__line {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.85);
+            margin-bottom: 6px;
+        }
+        .walkthrough-video__line.dim { background: rgba(255,255,255,0.35); }
+        .walkthrough-video__line.short { width: 55%; }
+        .walkthrough-video__list {
+            display: grid;
+            gap: 8px;
+        }
+        .walkthrough-video__list-item {
+            height: 34px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+        .walkthrough-video__footer {
+            height: 3px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(91,123,255,0.95), rgba(96,165,250,0.95));
+            animation: walkthroughPulse 2.2s ease-in-out infinite;
+        }
+        @keyframes walkthroughPan {
+            0%, 26% { transform: translateX(0); }
+            33%, 59% { transform: translateX(-33.333%); }
+            66%, 92% { transform: translateX(-66.666%); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes walkthroughPulse {
+            0%, 100% { opacity: 0.55; }
+            50% { opacity: 1; }
         }
         @media (max-width: 640px) {
             .demo-video__header { flex-direction: column; align-items: flex-start; }
+            .walkthrough-video__frame { padding: 12px; }
+            .walkthrough-video__layout { grid-template-columns: 1fr; }
         }
 
         /* Featured Listings */
@@ -3009,27 +3053,89 @@
                 <div class="demo-video__header">
                     <div>
                         <div class="label"><i class="bi bi-play-btn-fill"></i> Product Walkthroughs</div>
-                        <h2 class="heading-md">Watch how PrimeDrive works automatically</h2>
+                        <h2 class="heading-md">See PrimeDrive in a short auto walkthrough</h2>
                     </div>
                 </div>
                 <div class="demo-video__card" id="walkthroughCard">
                     <div class="demo-video__stage" id="walkthroughStage">
-                        <img class="active" src="https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=80&auto=format&fit=crop" alt="Browse trusted vehicles on PrimeDrive">
-                        <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=1200&q=80&auto=format&fit=crop" alt="List your vehicle and manage leads on PrimeDrive">
-                        <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=1200&q=80&auto=format&fit=crop" alt="Get guided support from the PrimeDrive AI assistant">
-                    </div>
-                    <div class="demo-video__step">
-                        <span class="demo-video__step-counter" id="walkthroughStepCounter">1</span>
-                        <span id="walkthroughStepLabel">Buyer Flow</span>
-                    </div>
-                    <div class="demo-video__title" id="walkthroughTitle">Browse → Message Seller → Checkout</div>
-                    <div class="demo-video__desc" id="walkthroughDesc">PrimeDrive now auto-plays this walkthrough so users immediately see the full buyer journey.</div>
-                    <div class="demo-video__timeline">
-                        <div class="demo-video__timeline-bar" id="walkthroughTimeline"></div>
-                    </div>
-                    <div class="demo-video__actions">
-                        <button class="btn btn--primary btn--sm" onclick="restartAutoWalkthrough()"><i class="bi bi-arrow-repeat"></i> Replay</button>
-                        <button class="btn btn--ghost btn--sm" id="walkthroughActionBtn" onclick="runCurrentWalkthroughAction()">Open flow</button>
+                        <div class="walkthrough-video" aria-label="PrimeDrive in-app walkthrough preview">
+                            <div class="walkthrough-video__track">
+                                <div class="walkthrough-video__frame">
+                                    <div class="walkthrough-video__window">
+                                        <div class="walkthrough-video__window-head">
+                                            <div class="walkthrough-video__dots"><span></span><span></span><span></span></div>
+                                            <span class="walkthrough-video__title">Buy flow</span>
+                                        </div>
+                                        <div class="walkthrough-video__layout">
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__cards">
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim short"></div></div>
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim"></div></div>
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim short"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__list">
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="walkthrough-video__footer"></div>
+                                    </div>
+                                </div>
+                                <div class="walkthrough-video__frame">
+                                    <div class="walkthrough-video__window">
+                                        <div class="walkthrough-video__window-head">
+                                            <div class="walkthrough-video__dots"><span></span><span></span><span></span></div>
+                                            <span class="walkthrough-video__title">Sell flow</span>
+                                        </div>
+                                        <div class="walkthrough-video__layout">
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__cards">
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim"></div></div>
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim short"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__list">
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="walkthrough-video__footer"></div>
+                                    </div>
+                                </div>
+                                <div class="walkthrough-video__frame">
+                                    <div class="walkthrough-video__window">
+                                        <div class="walkthrough-video__window-head">
+                                            <div class="walkthrough-video__dots"><span></span><span></span><span></span></div>
+                                            <span class="walkthrough-video__title">Assistant flow</span>
+                                        </div>
+                                        <div class="walkthrough-video__layout">
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__cards">
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim"></div></div>
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim short"></div></div>
+                                                    <div class="walkthrough-video__card"><div class="walkthrough-video__line"></div><div class="walkthrough-video__line dim"></div></div>
+                                                </div>
+                                            </div>
+                                            <div class="walkthrough-video__panel">
+                                                <div class="walkthrough-video__list">
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                    <div class="walkthrough-video__list-item"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="walkthrough-video__footer"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -5719,109 +5825,10 @@
     let activeMessageMode = 'assistant';
     let demoConversation = [];
     let demoConversationListingId = null;
-    let autoWalkthroughIndex = 0;
-    let autoWalkthroughTimer = null;
     const API_BASE = localStorage.getItem('pd_api_base') || 'http://localhost:8000';
 
     async function startConversation(listingId, sellerId) {
         openDemoSellerChat(listingId);
-    }
-
-    function runProductWalkthrough(type = 'buyer') {
-        if (type === 'buyer') {
-            navigate('buy');
-            setTimeout(() => openDemoSellerChat(demoListings?.[0]?.id || null), 120);
-            return;
-        }
-        if (type === 'seller') {
-            navigate('sell');
-            setTimeout(() => {
-                navigate('messages');
-                openDemoSellerChat(demoListings?.[0]?.id || null);
-            }, 140);
-            return;
-        }
-        navigate('messages');
-        switchMessageMode('assistant');
-        const input = document.getElementById('assistantInput');
-        if (input) {
-            input.value = 'Show me the safest next step for buying or selling on PrimeDrive.';
-            input.focus();
-        }
-    }
-
-    function getWalkthroughScenes() {
-        return [
-            {
-                key: 'buyer',
-                label: 'Buyer Flow',
-                title: 'Browse → Message Seller → Checkout',
-                desc: 'Compare verified cars, ask questions in-app, then close with secure checkout steps.',
-                actionLabel: 'Open Buy',
-            },
-            {
-                key: 'seller',
-                label: 'Seller Flow',
-                title: 'List Car → Leads → Demo Transaction',
-                desc: 'Post your car, track incoming leads, and move to transaction updates inside PrimeDrive.',
-                actionLabel: 'Open Sell',
-            },
-            {
-                key: 'assistant',
-                label: 'AI Assistant',
-                title: 'Guidance for Next Best Action',
-                desc: 'Get instant direction on what to do next without leaving the app experience.',
-                actionLabel: 'Open Messages',
-            },
-        ];
-    }
-
-    function renderWalkthroughScene(index = 0) {
-        const scenes = getWalkthroughScenes();
-        const scene = scenes[index] || scenes[0];
-        const stage = document.getElementById('walkthroughStage');
-        if (!stage) return;
-
-        stage.querySelectorAll('img').forEach((img, imgIdx) => {
-            img.classList.toggle('active', imgIdx === index);
-        });
-
-        const counter = document.getElementById('walkthroughStepCounter');
-        const label = document.getElementById('walkthroughStepLabel');
-        const title = document.getElementById('walkthroughTitle');
-        const desc = document.getElementById('walkthroughDesc');
-        const timeline = document.getElementById('walkthroughTimeline');
-        const actionBtn = document.getElementById('walkthroughActionBtn');
-
-        if (counter) counter.textContent = String(index + 1);
-        if (label) label.textContent = scene.label;
-        if (title) title.textContent = scene.title;
-        if (desc) desc.textContent = scene.desc;
-        if (timeline) timeline.style.width = `${((index + 1) / scenes.length) * 100}%`;
-        if (actionBtn) actionBtn.textContent = scene.actionLabel;
-    }
-
-    function runCurrentWalkthroughAction() {
-        const scenes = getWalkthroughScenes();
-        const current = scenes[autoWalkthroughIndex] || scenes[0];
-        runProductWalkthrough(current.key);
-    }
-
-    function startAutoWalkthrough() {
-        const stage = document.getElementById('walkthroughStage');
-        if (!stage) return;
-        clearInterval(autoWalkthroughTimer);
-        renderWalkthroughScene(autoWalkthroughIndex);
-        autoWalkthroughTimer = setInterval(() => {
-            const scenes = getWalkthroughScenes();
-            autoWalkthroughIndex = (autoWalkthroughIndex + 1) % scenes.length;
-            renderWalkthroughScene(autoWalkthroughIndex);
-        }, 3000);
-    }
-
-    function restartAutoWalkthrough() {
-        autoWalkthroughIndex = 0;
-        startAutoWalkthrough();
     }
 
     function initAssistantPanel() {
@@ -7395,7 +7402,6 @@
         loadMarketplaceListings();
         renderRentCars(rentalListings);
         initRevealObserver();
-        startAutoWalkthrough();
 
         // Handle deep link from PWA shortcuts
         handleHashNavigation();
