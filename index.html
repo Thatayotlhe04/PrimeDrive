@@ -802,23 +802,26 @@
             margin-bottom: 14px;
             line-height: 1.6;
         }
+        .demo-video__autoplay-note {
+            margin-bottom: 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
         .demo-video__timeline {
             height: 5px;
             border-radius: var(--radius-full);
             background: rgba(59, 91, 255, 0.18);
             overflow: hidden;
-            margin-bottom: 14px;
+            margin-bottom: 2px;
         }
         .demo-video__timeline-bar {
             height: 100%;
             width: 33.333%;
             background: linear-gradient(90deg, #3b5bff, #60a5fa);
             transition: width 0.35s ease;
-        }
-        .demo-video__actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
         }
         @media (max-width: 640px) {
             .demo-video__header { flex-direction: column; align-items: flex-start; }
@@ -3110,10 +3113,6 @@
                     <div class="demo-video__desc" id="walkthroughDesc">This walkthrough highlights real in-app actions only (no stock photos).</div>
                     <div class="demo-video__timeline">
                         <div class="demo-video__timeline-bar" id="walkthroughTimeline"></div>
-                    </div>
-                    <div class="demo-video__actions">
-                        <button class="btn btn--primary btn--sm" onclick="restartAutoWalkthrough()"><i class="bi bi-arrow-repeat"></i> Replay</button>
-                        <button class="btn btn--ghost btn--sm" id="walkthroughActionBtn" onclick="runCurrentWalkthroughAction()">Open flow</button>
                     </div>
                 </div>
             </div>
@@ -5811,29 +5810,6 @@
         openDemoSellerChat(listingId);
     }
 
-    function runProductWalkthrough(type = 'buyer') {
-        if (type === 'buyer') {
-            navigate('buy');
-            setTimeout(() => openDemoSellerChat(demoListings?.[0]?.id || null), 120);
-            return;
-        }
-        if (type === 'seller') {
-            navigate('sell');
-            setTimeout(() => {
-                navigate('messages');
-                openDemoSellerChat(demoListings?.[0]?.id || null);
-            }, 140);
-            return;
-        }
-        navigate('messages');
-        switchMessageMode('assistant');
-        const input = document.getElementById('assistantInput');
-        if (input) {
-            input.value = 'Show me the safest next step for buying or selling on PrimeDrive.';
-            input.focus();
-        }
-    }
-
     function getWalkthroughScenes() {
         return [
             {
@@ -5841,7 +5817,6 @@
                 label: 'Buyer Flow',
                 title: 'Browse → Message Seller → Checkout',
                 desc: 'Compare verified cars, ask questions in-app, then close with secure checkout steps.',
-                actionLabel: 'Open Buy',
             },
             {
                 key: 'seller',
@@ -5855,7 +5830,6 @@
                 label: 'AI Assistant',
                 title: 'Guidance for Next Best Action',
                 desc: 'Get instant direction on what to do next without leaving the app experience.',
-                actionLabel: 'Open Messages',
             },
         ];
     }
@@ -5875,20 +5849,12 @@
         const title = document.getElementById('walkthroughTitle');
         const desc = document.getElementById('walkthroughDesc');
         const timeline = document.getElementById('walkthroughTimeline');
-        const actionBtn = document.getElementById('walkthroughActionBtn');
 
         if (counter) counter.textContent = String(index + 1);
         if (label) label.textContent = scene.label;
         if (title) title.textContent = scene.title;
         if (desc) desc.textContent = scene.desc;
         if (timeline) timeline.style.width = `${((index + 1) / scenes.length) * 100}%`;
-        if (actionBtn) actionBtn.textContent = scene.actionLabel;
-    }
-
-    function runCurrentWalkthroughAction() {
-        const scenes = getWalkthroughScenes();
-        const current = scenes[autoWalkthroughIndex] || scenes[0];
-        runProductWalkthrough(current.key);
     }
 
     function startAutoWalkthrough() {
@@ -5900,12 +5866,7 @@
             const scenes = getWalkthroughScenes();
             autoWalkthroughIndex = (autoWalkthroughIndex + 1) % scenes.length;
             renderWalkthroughScene(autoWalkthroughIndex);
-        }, 3000);
-    }
-
-    function restartAutoWalkthrough() {
-        autoWalkthroughIndex = 0;
-        startAutoWalkthrough();
+        }, 2200);
     }
 
     function initAssistantPanel() {
