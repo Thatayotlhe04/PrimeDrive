@@ -55,6 +55,11 @@ CREATE TABLE car_listings (
 
     -- Media
     images TEXT[], -- Array of image URLs
+    ai_price_estimate INTEGER,
+    ai_price_confidence NUMERIC(4,3),
+    semantic_embedding TEXT, -- can store embedding blob or external vector ID reference
+    photo_verification_status VARCHAR(50),
+    photo_risk_flags TEXT[],
 
     -- Status
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'expired', 'removed')),

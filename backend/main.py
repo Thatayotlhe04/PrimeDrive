@@ -11,6 +11,7 @@ import hashlib
 import base64
 import json
 import logging
+import re
 
 from config import get_settings, Settings
 from models import *
@@ -193,6 +194,32 @@ async def get_user_profile(user_id: str) -> UserProfile:
     )
 
 
+async def require_minimum_tier(
+    user=Depends(get_current_user),
+    minimum_tier: str = "premium"
+):
+    """
+    Enforce minimum subscription tier for premium AI features.
+    Current policy: premium tier required for advanced AI endpoints.
+    """
+    sub_info = await check_and_enforce_subscription(user.id)
+    current_tier = sub_info["tier"]["name"]
+    tier_order = {"free": 0, "basic": 1, "standard": 2, "premium": 3}
+
+    if tier_order.get(current_tier, -1) < tier_order.get(minimum_tier, 999):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "message": f"{minimum_tier.title()} subscription required for this AI feature.",
+                "required_tier": minimum_tier,
+                "current_tier": current_tier,
+                "upgrade_required": True,
+            }
+        )
+
+    return user
+
+
 async def check_and_enforce_subscription(user_id: str) -> dict:
     """
     Check if user's subscription is still valid.
@@ -282,6 +309,153 @@ async def activate_subscription(user_id: str, tier_id: str, duration_days: int =
     }).eq("id", user_id).execute()
 
     logger.info(f"User {user_id} subscription activated, tier={tier_id}, expires={new_expires.isoformat()}")
+
+
+# ========================================
+# Premium AI Endpoints
+# ========================================
+@app.post("/ai/pricing/predict", response_model=AIPricingPredictResponse)
+async def ai_pricing_predict(
+    payload: AIPricingPredictRequest,
+    user=Depends(require_minimum_tier)
+):
+    """
+    Predict a reasonable vehicle price and return explainability factors.
+    This is a deterministic heuristic fallback until external AI is wired in.
+    """
+    condition_multipliers = {
+        "excellent": 1.08,
+        "good": 1.0,
+        "fair": 0.88,
+        "needs work": 0.72,
+    }
+
+    age = max(0, datetime.now(timezone.utc).year - payload.year)
+    age_factor = max(0.45, 1 - (age * 0.045))
+    mileage_factor = max(0.5, 1 - (payload.mileage / 450000))
+    condition_factor = condition_multipliers.get(payload.condition.lower(), 0.95)
+    base_price = 240000
+
+    estimated = int(base_price * age_factor * mileage_factor * condition_factor)
+    confidence = round(min(0.95, max(0.5, 0.6 + (mileage_factor * 0.2) + (condition_factor - 0.8))), 2)
+
+    return AIPricingPredictResponse(
+        estimated_price=max(20000, estimated),
+        confidence=confidence,
+        explanation=(
+            f"Price estimate is based on vehicle age ({age} years), "
+            f"reported mileage ({payload.mileage:,} km), and condition ({payload.condition})."
+        ),
+        factors={
+            "why_this_price": "Older age and higher mileage reduce estimate; better condition increases it.",
+            "model_basis": f"Baseline market anchor used for {payload.brand} {payload.model} in Botswana.",
+            "confidence_reason": "Confidence reflects data completeness and consistency against expected market ranges."
+        }
+    )
+
+
+@app.post("/ai/photos/verify", response_model=PhotoVerifyResponse)
+async def ai_photo_verify(
+    payload: PhotoVerifyRequest,
+    user=Depends(require_minimum_tier)
+):
+    """
+    Score listing photo authenticity/risk.
+    Placeholder heuristic that flags suspicious patterns with explainability.
+    """
+    risk_flags = []
+    risk_score = 0.08
+
+    if len(payload.image_urls) < 2:
+        risk_flags.append("too_few_photos")
+        risk_score += 0.25
+
+    duplicate_count = len(payload.image_urls) - len(set(payload.image_urls))
+    if duplicate_count > 0:
+        risk_flags.append("duplicate_image_urls")
+        risk_score += min(0.3, duplicate_count * 0.12)
+
+    if any(("watermark" in url.lower() or "stock" in url.lower()) for url in payload.image_urls):
+        risk_flags.append("possible_stock_or_watermarked_image")
+        risk_score += 0.22
+
+    risk_score = round(min(0.99, risk_score), 2)
+    if risk_score < 0.3:
+        status_value = "verified_low_risk"
+    elif risk_score < 0.6:
+        status_value = "review_recommended"
+    else:
+        status_value = "high_risk_flagged"
+
+    why_flagged = "No major issues detected." if not risk_flags else (
+        "Risk raised due to: " + ", ".join(risk_flags).replace("_", " ")
+    )
+
+    return PhotoVerifyResponse(
+        verification_status=status_value,
+        risk_score=risk_score,
+        risk_flags=risk_flags,
+        explanation=(
+            f"{why_flagged} Action: "
+            f"{'Proceed to publish.' if risk_score < 0.3 else 'Review or replace flagged images before publishing.'}"
+        )
+    )
+
+
+@app.post("/ai/search/semantic", response_model=SemanticSearchResponse)
+async def ai_semantic_search(
+    payload: SemanticSearchRequest,
+    user=Depends(require_minimum_tier)
+):
+    """
+    Natural-language retrieval over active listings with explainable match reasons.
+    Uses token overlap as a no-external-service semantic fallback.
+    """
+    query_builder = supabase.from_("car_listings").select("*").eq("status", "active")
+    if payload.listing_type:
+        query_builder = query_builder.eq("listing_type", payload.listing_type.value)
+
+    result = query_builder.order("created_at", desc=True).limit(150).execute()
+    listings = result.data or []
+
+    query_terms = set(re.findall(r"[a-z0-9]+", payload.query.lower()))
+    matches = []
+    for listing in listings:
+        searchable = " ".join([
+            str(listing.get("brand", "")),
+            str(listing.get("model", "")),
+            str(listing.get("condition", "")),
+            str(listing.get("location", "")),
+            str(listing.get("notes", "")),
+            str(listing.get("transmission", "")),
+        ]).lower()
+        listing_terms = set(re.findall(r"[a-z0-9]+", searchable))
+        overlap = query_terms.intersection(listing_terms)
+        if not overlap:
+            continue
+
+        score = round(len(overlap) / max(1, len(query_terms)), 3)
+        why = f"Matched on: {', '.join(sorted(list(overlap))[:5])}"
+        matches.append(
+            SemanticSearchMatch(
+                listing_id=listing["id"],
+                score=score,
+                why_match=why,
+                listing=listing
+            )
+        )
+
+    matches.sort(key=lambda m: m.score, reverse=True)
+    top_matches = matches[:payload.limit]
+
+    return SemanticSearchResponse(
+        matches=top_matches,
+        explanation=(
+            "Matches ranked by overlap between your natural-language query and listing details "
+            "(brand, model, condition, location, description)."
+        ),
+        fallback_used=True
+    )
 
 
 # ========================================

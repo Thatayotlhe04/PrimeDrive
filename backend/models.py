@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from typing import Optional, List, Dict
 from datetime import datetime
 from enum import Enum
 
@@ -57,6 +57,11 @@ class CreateListing(BaseModel):
     daily_rate: Optional[int] = Field(default=None, ge=0)  # For rentals
     seats: Optional[int] = Field(default=None, ge=1, le=12)  # For rentals
     images: Optional[List[str]] = []
+    ai_price_estimate: Optional[int] = Field(default=None, ge=0)
+    ai_price_confidence: Optional[float] = Field(default=None, ge=0, le=1)
+    semantic_embedding: Optional[str] = None
+    photo_verification_status: Optional[str] = None
+    photo_risk_flags: Optional[List[str]] = []
 
 
 class UpdateListing(BaseModel):
@@ -72,6 +77,11 @@ class UpdateListing(BaseModel):
     daily_rate: Optional[int] = None
     seats: Optional[int] = None
     status: Optional[ListingStatus] = None
+    ai_price_estimate: Optional[int] = None
+    ai_price_confidence: Optional[float] = Field(default=None, ge=0, le=1)
+    semantic_embedding: Optional[str] = None
+    photo_verification_status: Optional[str] = None
+    photo_risk_flags: Optional[List[str]] = None
 
 
 class InitiateSubscription(BaseModel):
@@ -117,8 +127,64 @@ class ListingResponse(BaseModel):
     seats: Optional[int]
     images: List[str]
     status: ListingStatus
+    ai_price_estimate: Optional[int] = None
+    ai_price_confidence: Optional[float] = None
+    semantic_embedding: Optional[str] = None
+    photo_verification_status: Optional[str] = None
+    photo_risk_flags: Optional[List[str]] = None
     created_at: datetime
     expires_at: datetime
+
+
+class AIPricingPredictRequest(BaseModel):
+    brand: str
+    model: str
+    year: int
+    mileage: int
+    condition: str
+    location: Optional[str] = None
+    listing_type: ListingType = ListingType.SALE
+    requested_price: Optional[int] = None
+
+
+class AIPricingPredictResponse(BaseModel):
+    estimated_price: int
+    confidence: float = Field(ge=0, le=1)
+    explanation: str
+    factors: Dict[str, str]
+
+
+class SemanticSearchRequest(BaseModel):
+    query: str = Field(min_length=2, max_length=300)
+    listing_type: Optional[ListingType] = None
+    limit: int = Field(default=20, ge=1, le=50)
+
+
+class SemanticSearchMatch(BaseModel):
+    listing_id: str
+    score: float
+    why_match: str
+    listing: Dict
+
+
+class SemanticSearchResponse(BaseModel):
+    matches: List[SemanticSearchMatch]
+    explanation: str
+    fallback_used: bool = False
+
+
+class PhotoVerifyRequest(BaseModel):
+    image_urls: List[str] = Field(min_length=1, max_length=10)
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    year: Optional[int] = None
+
+
+class PhotoVerifyResponse(BaseModel):
+    verification_status: str
+    risk_score: float = Field(ge=0, le=1)
+    risk_flags: List[str]
+    explanation: str
 
 
 class TierInfo(BaseModel):

@@ -3122,6 +3122,13 @@
                 </div>
 
                 <div class="filters" id="buyFilters">
+                    <div class="filter-group" style="min-width:260px; flex:1.6;">
+                        <label>Semantic Search (Premium)</label>
+                        <div style="display:flex; gap:8px;">
+                            <input class="filter-input" id="buySemanticQuery" placeholder="e.g. fuel efficient automatic SUV in Gaborone" onkeydown="if(event.key==='Enter'){event.preventDefault(); runSemanticSearch();}">
+                            <button class="btn btn--primary btn--sm" type="button" onclick="runSemanticSearch()"><i class="bi bi-stars"></i> AI</button>
+                        </div>
+                    </div>
                     <div class="filter-group">
                         <label>Brand</label>
                         <select class="filter-select" id="buyFilterBrand" onchange="applyBuyFilters()">
@@ -3163,6 +3170,7 @@
                         <button class="btn btn--ghost btn--sm" onclick="resetBuyFilters()"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
                     </div>
                 </div>
+                <p class="body-sm" id="semanticFeedback" style="margin-top:10px;"></p>
 
                 <div class="car-grid" id="buyGrid"></div>
             </div>
@@ -3302,6 +3310,10 @@
                                     <div class="upload-area__hint">Max 10 photos &middot; JPG, PNG</div>
                                 </div>
                                 <div class="upload-previews" id="photoPreviews"></div>
+                                <div id="photoAiFeedback" class="body-sm" style="margin-top:12px;"></div>
+                            </div>
+                            <div class="form-group form-group--full">
+                                <div id="priceAiFeedback" class="body-sm"></div>
                             </div>
                             <div class="form-group form-group--full">
                                 <button type="submit" class="btn btn--primary btn--lg btn--full" id="sellSubmitBtn">
@@ -4329,6 +4341,7 @@
     });
 
     const WHATSAPP = "26777625997";
+    const API_BASE_URL = localStorage.getItem('pd_api_base_url') || 'http://localhost:8000';
 
     // ===========================================
     // SUPABASE CLIENT (single init, no guards)
@@ -4399,6 +4412,10 @@
 
     let marketplaceListings = []; // Loaded from Supabase
     let currentListingDetail = null; // Currently viewed listing
+    let aiDraftInsights = {
+        photo: null,
+        pricing: null,
+    };
 
     const rentalListings = [
         // Rental vehicles loaded separately
@@ -4499,6 +4516,9 @@
         const sellerBadge = sellerType === 'dealer'
             ? '<span class="car-card__spec"><i class="bi bi-building"></i> Dealership</span>'
             : '<span class="car-card__spec"><i class="bi bi-person"></i> Individual</span>';
+        const aiMatchReason = car.ai_match_reason
+            ? `<div class="body-xs" style="margin-top:8px;color:var(--accent);"><i class="bi bi-stars"></i> Why this match: ${car.ai_match_reason}</div>`
+            : '';
         const imgHTML = mainPhoto
             ? `<img src="${mainPhoto}" alt="${make} ${model}" loading="lazy">`
             : `<div style="height:100%;display:flex;align-items:center;justify-content:center;background:var(--bg-secondary);"><i class="bi bi-car-front" style="font-size:3rem;color:var(--text-tertiary);"></i></div>`;
@@ -4535,6 +4555,7 @@
                     </div>
                     <div class="car-card__location"><i class="bi bi-geo-alt"></i> ${location}</div>
                 </div>
+                ${aiMatchReason}
             </div>
             ${sellerHTML}
         </div>`;
@@ -4632,6 +4653,8 @@
             const [min, max] = price.split('-').map(Number);
             filtered = filtered.filter(c => c.price >= min && c.price <= max);
         }
+        const semanticFeedback = document.getElementById('semanticFeedback');
+        if (semanticFeedback) semanticFeedback.textContent = '';
         renderBuyCars(filtered);
     }
 
@@ -4639,7 +4662,58 @@
         ['buyFilterBrand','buyFilterPrice','buyFilterYear','buyFilterTrans','buyFilterLocation'].forEach(id => {
             document.getElementById(id).value = '';
         });
+        const queryEl = document.getElementById('buySemanticQuery');
+        const feedback = document.getElementById('semanticFeedback');
+        if (queryEl) queryEl.value = '';
+        if (feedback) feedback.textContent = '';
         renderBuyCars(marketplaceListings);
+    }
+
+    async function getAccessToken() {
+        const { data } = await supabase.auth.getSession();
+        return data?.session?.access_token || '';
+    }
+
+    async function callPremiumAI(path, payload) {
+        const token = await getAccessToken();
+        const resp = await fetch(`${API_BASE_URL}${path}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify(payload)
+        });
+        const body = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(body?.detail?.message || body?.detail || 'AI service unavailable');
+        return body;
+    }
+
+    async function runSemanticSearch() {
+        const query = val('buySemanticQuery');
+        const feedbackEl = document.getElementById('semanticFeedback');
+        if (!query || query.length < 2) {
+            if (feedbackEl) feedbackEl.textContent = 'Type a detailed request to use AI semantic search.';
+            return;
+        }
+        try {
+            const response = await callPremiumAI('/ai/search/semantic', { query, limit: 30, listing_type: 'sale' });
+            const matched = (response.matches || []).map(m => ({
+                ...m.listing,
+                ai_match_reason: m.why_match,
+                ai_match_score: m.score
+            }));
+            renderBuyCars(matched);
+            if (feedbackEl) {
+                feedbackEl.textContent = `Why these matches: ${response.explanation} Top reason: ${matched[0]?.ai_match_reason || 'N/A'}.`;
+            }
+        } catch (err) {
+            console.warn('Semantic search fallback:', err.message);
+            applyBuyFilters();
+            if (feedbackEl) {
+                feedbackEl.textContent = `AI search unavailable (${err.message}). Showing filter-based results instead.`;
+            }
+        }
     }
 
 
@@ -4703,6 +4777,7 @@
             reader.onload = ev => {
                 uploadedPhotos.push({ file, data: ev.target.result });
                 renderPreviews();
+                verifyUploadedPhotos();
             };
             reader.readAsDataURL(file);
         });
@@ -4721,6 +4796,33 @@
     function removePhoto(i) {
         uploadedPhotos.splice(i, 1);
         renderPreviews();
+        verifyUploadedPhotos();
+    }
+
+    async function verifyUploadedPhotos() {
+        const feedback = document.getElementById('photoAiFeedback');
+        if (!uploadedPhotos.length) {
+            aiDraftInsights.photo = null;
+            if (feedback) feedback.textContent = '';
+            return;
+        }
+        if (feedback) feedback.textContent = 'Checking photo authenticity...';
+        try {
+            const response = await callPremiumAI('/ai/photos/verify', {
+                image_urls: uploadedPhotos.map(p => p.data),
+                brand: val('sellBrand') || null,
+                model: val('sellModel') || null,
+                year: parseInt(val('sellYear')) || null,
+            });
+            aiDraftInsights.photo = response;
+            const why = response.explanation || 'AI verification completed.';
+            feedback.innerHTML = `<strong>Photo check:</strong> ${response.verification_status}. Why flagged photo: ${why}`;
+            feedback.style.color = response.risk_score >= 0.6 ? '#dc2626' : 'var(--text-secondary)';
+        } catch (err) {
+            aiDraftInsights.photo = null;
+            feedback.textContent = `AI photo verification unavailable (${err.message}). You can still publish using manual review.`;
+            feedback.style.color = 'var(--text-secondary)';
+        }
     }
 
     async function submitSellForm(e) {
@@ -4736,8 +4838,33 @@
         const make = val('sellBrand');
         const model = val('sellModel');
         const title = make + ' ' + model;
+        const priceFeedback = document.getElementById('priceAiFeedback');
 
         try {
+            // 0. Predict fair price (premium AI)
+            let aiPricing = null;
+            try {
+                aiPricing = await callPremiumAI('/ai/pricing/predict', {
+                    brand: make,
+                    model,
+                    year: parseInt(val('sellYear')),
+                    mileage: parseInt(val('sellMileage')) || 0,
+                    condition: val('sellCondition'),
+                    location: val('sellLocation'),
+                    listing_type: 'sale',
+                    requested_price: parseFloat(val('sellPrice')),
+                });
+                aiDraftInsights.pricing = aiPricing;
+                if (priceFeedback) {
+                    priceFeedback.innerHTML = `<strong>Why this price:</strong> ${aiPricing.explanation} Suggested range center: <strong>${formatPrice(aiPricing.estimated_price)}</strong> (confidence ${(aiPricing.confidence * 100).toFixed(0)}%).`;
+                }
+            } catch (err) {
+                aiDraftInsights.pricing = null;
+                if (priceFeedback) {
+                    priceFeedback.textContent = `AI pricing unavailable (${err.message}). Listing will publish without AI pricing guidance.`;
+                }
+            }
+
             // 1. Insert listing record
             const { data: listing, error: listErr } = await supabase
                 .from('listings')
@@ -4755,6 +4882,11 @@
                     location: val('sellLocation'),
                     description: val('sellNotes') || null,
                     status: 'unverified',
+                    ai_price_estimate: aiPricing?.estimated_price || null,
+                    ai_price_confidence: aiPricing?.confidence || null,
+                    semantic_embedding: null,
+                    photo_verification_status: aiDraftInsights.photo?.verification_status || null,
+                    photo_risk_flags: aiDraftInsights.photo?.risk_flags || [],
                 })
                 .select()
                 .single();
